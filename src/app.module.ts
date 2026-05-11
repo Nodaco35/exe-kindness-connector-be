@@ -14,9 +14,25 @@ import { MembershipModule } from './module/membership/membership.module';
 import { MembershipRecordModule } from './module/membership_record/membership_record.module';
 import { BookViolationModule } from './module/book_violation/book_violation.module';
 import { BookViolationRecordModule } from './module/book_violation_record/book_violation_record.module';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
-  imports: [UserModule, BookModule, LocationModule, BookCategoryModule, ExchangeRequestModule, ExchangeRecordModule, ConversationModule, MessageModule, MessageStatusModule, MembershipModule, MembershipRecordModule, BookViolationModule, BookViolationRecordModule],
+  imports: [
+    UserModule,
+    BookModule,
+    LocationModule,
+    BookCategoryModule,
+    ExchangeRequestModule,
+    ExchangeRecordModule,
+    ConversationModule,
+    MessageModule,
+    MessageStatusModule,
+    MembershipModule,
+    MembershipRecordModule,
+    BookViolationModule,
+    BookViolationRecordModule,
+    MongooseModule.forRoot(''),
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
