@@ -29,3 +29,9 @@ export enum Membership_Status {
   EXPIRED = 'EXPIRED',
   CANCELED = 'CANCELED',
 }
+
+export enum BookViolation_Status {
+  PENDING = 'PENDING',
+  RESOLVED = 'RESOLVED',
+  REJECTED = 'REJECTED',
+}

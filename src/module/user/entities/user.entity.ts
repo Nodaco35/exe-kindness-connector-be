@@ -27,9 +27,9 @@ export class User {
   avatar!: string;
 
   @Prop({
-    type: AddressSchema
+    type: [AddressSchema]
   })
-  address!: [Address]
+  address!: Address[]
   
 
 }

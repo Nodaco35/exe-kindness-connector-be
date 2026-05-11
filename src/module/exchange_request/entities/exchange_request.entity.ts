@@ -3,7 +3,10 @@ import mongoose from 'mongoose';
 import { Exchange_Status } from 'src/common/enums/status.enum';
 
 @Schema({
-  timestamps: true,
+  timestamps: {
+    createdAt: true,
+    updatedAt: false,
+  },
 })
 export class ExchangeRequest {
   @Prop({

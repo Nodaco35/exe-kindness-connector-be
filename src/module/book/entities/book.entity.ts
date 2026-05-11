@@ -15,22 +15,22 @@ export class Book {
   author!: string;
 
   @Prop({
-    type: mongoose.Schema.Types.ObjectId,
+    type: [mongoose.Schema.Types.ObjectId],
     ref: 'BookCategory',
   })
-  categories!: [mongoose.Types.ObjectId];
+  categories!: mongoose.Types.ObjectId[];
 
   @Prop({
-    type: mongoose.Schema.Types.ObjectId,
+    type: [mongoose.Schema.Types.ObjectId],
     ref: 'BookCategory',
   })
-  advancedCategories!: [mongoose.Types.ObjectId];
+  advancedCategories!: mongoose.Types.ObjectId[];
 
   @Prop()
   description!: string;
 
   @Prop()
-  image!: [string];
+  images!: string[];
 
   @Prop()
   codition!: Condition;
