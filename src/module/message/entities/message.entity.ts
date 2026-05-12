@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { MessageType } from 'src/common/enums/type.enum';
 
@@ -28,3 +28,4 @@ export class Message {
   @Prop()
   isDelete!: boolean;
 }
+export const MessageSchema = SchemaFactory.createForClass(Message);

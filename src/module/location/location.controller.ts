@@ -1,34 +1,51 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { LocationService } from './location.service';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
+
 import { CreateLocationDto } from './dto/create-location.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
+import { LocationService } from './location.service';
 
-@Controller('location')
+@Controller('locations')
 export class LocationController {
-  constructor(private readonly locationService: LocationService) {}
+  constructor(private readonly locationsService: LocationService) {}
 
   @Post()
-  create(@Body() createLocationDto: CreateLocationDto) {
-    return this.locationService.create(createLocationDto);
+  create(
+    @Body()
+    createLocationDto: CreateLocationDto,
+  ) {
+    return this.locationsService.create(createLocationDto);
   }
 
   @Get()
   findAll() {
-    return this.locationService.findAll();
+    return this.locationsService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.locationService.findOne(+id);
+    return this.locationsService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateLocationDto: UpdateLocationDto) {
-    return this.locationService.update(+id, updateLocationDto);
+  update(
+    @Param('id') id: string,
+
+    @Body()
+    updateLocationDto: UpdateLocationDto,
+  ) {
+    return this.locationsService.update(id, updateLocationDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.locationService.remove(+id);
+    return this.locationsService.remove(id);
   }
 }

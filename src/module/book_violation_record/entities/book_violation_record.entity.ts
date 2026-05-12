@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 
 enum Action {
@@ -24,3 +24,5 @@ export class BookViolationRecord {
   @Prop()
   note!: string;
 }
+export const BookViolationRecordSchema =
+  SchemaFactory.createForClass(BookViolationRecord);

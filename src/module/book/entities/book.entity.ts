@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Condition } from 'src/common/enums/condition.enum';
 import { Book_Status } from 'src/common/enums/status.enum';
@@ -52,3 +52,4 @@ export class Book {
   @Prop()
   viewCount!: number;
 }
+export const BookSchema = SchemaFactory.createForClass(Book);

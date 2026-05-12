@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 
 type Rating = {
@@ -61,3 +61,4 @@ export class ExchangeRecord {
   })
   feedback!: Feedback;
 }
+export const ExchangeRecordSchema = SchemaFactory.createForClass(ExchangeRecord)

@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Message_Status } from 'src/common/enums/status.enum';
 
@@ -24,3 +24,4 @@ export class MessageStatus {
   @Prop()
   status!: Message_Status;
 }
+export const MessageStatusSchema = SchemaFactory.createForClass(MessageStatus)

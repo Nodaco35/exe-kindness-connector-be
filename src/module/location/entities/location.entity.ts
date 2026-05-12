@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { LocationType } from 'src/common/enums/location-type.enum';
 
@@ -18,3 +18,4 @@ export class Location {
   })
   parent!: mongoose.Types.ObjectId;
 }
+export const LocationSchema = SchemaFactory.createForClass(Location);

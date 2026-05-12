@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 
 @Schema({
@@ -20,3 +20,4 @@ export class Conversation {
   @Prop()
   lastSentAt!: string;
 }
+export const ConversationSchema = SchemaFactory.createForClass(Conversation)

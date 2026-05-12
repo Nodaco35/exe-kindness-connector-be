@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Membership_Status } from 'src/common/enums/status.enum';
 
@@ -36,3 +36,4 @@ export class Membership {
   amount!: number;
   
 }
+export const MembershipSchema = SchemaFactory.createForClass(Membership)

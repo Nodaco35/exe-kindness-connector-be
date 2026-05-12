@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Exchange_Status } from 'src/common/enums/status.enum';
 
@@ -39,3 +39,4 @@ export class ExchangeRequest {
   @Prop()
   completedAt!: Date;
 }
+export const ExchangeRequestSchema = SchemaFactory.createForClass(ExchangeRequest)

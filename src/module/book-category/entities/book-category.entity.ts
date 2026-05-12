@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { CategoryType } from 'src/common/enums/category.enum';
 
 @Schema({
@@ -11,3 +11,4 @@ export class BookCategory {
   @Prop()
   type!: CategoryType;
 }
+export const BookCategorySchema = SchemaFactory.createForClass(BookCategory);

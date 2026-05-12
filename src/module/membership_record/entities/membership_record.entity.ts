@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 
 enum Action {
@@ -26,3 +26,4 @@ export class MembershipRecord {
   @Prop()
   action!: Action;
 }
+export const MembershipRecordSchema = SchemaFactory.createForClass(MembershipRecord)

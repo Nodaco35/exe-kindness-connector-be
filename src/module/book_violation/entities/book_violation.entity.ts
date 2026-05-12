@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { BookViolation_Status } from 'src/common/enums/status.enum';
 
@@ -27,3 +27,4 @@ export class BookViolation {
   @Prop()
   status!: BookViolation_Status;
 }
+export const BookViolationSchema = SchemaFactory.createForClass(BookViolation)

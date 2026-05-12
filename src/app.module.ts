@@ -31,7 +31,9 @@ import { MongooseModule } from '@nestjs/mongoose';
     MembershipRecordModule,
     BookViolationModule,
     BookViolationRecordModule,
-    MongooseModule.forRoot(''),
+    MongooseModule.forRoot(
+      'mongodb+srv://cuongndhe180335_db_user:nodaco35@kindness-connector.ghvcoe7.mongodb.net/kindness-connector',
+    ),
   ],
   controllers: [AppController],
   providers: [AppService],
