@@ -1,11 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { BookViolationRecordService } from './book_violation_record.service';
 import { CreateBookViolationRecordDto } from './dto/create-book_violation_record.dto';
 import { UpdateBookViolationRecordDto } from './dto/update-book_violation_record.dto';
 
 @Controller('book-violation-record')
 export class BookViolationRecordController {
-  constructor(private readonly bookViolationRecordService: BookViolationRecordService) {}
+  constructor(
+    private readonly bookViolationRecordService: BookViolationRecordService,
+  ) {}
 
   @Post()
   create(@Body() createBookViolationRecordDto: CreateBookViolationRecordDto) {
@@ -23,8 +33,14 @@ export class BookViolationRecordController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBookViolationRecordDto: UpdateBookViolationRecordDto) {
-    return this.bookViolationRecordService.update(+id, updateBookViolationRecordDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateBookViolationRecordDto: UpdateBookViolationRecordDto,
+  ) {
+    return this.bookViolationRecordService.update(
+      +id,
+      updateBookViolationRecordDto,
+    );
   }
 
   @Delete(':id')

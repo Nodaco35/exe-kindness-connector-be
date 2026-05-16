@@ -11,7 +11,9 @@ describe('BookViolationRecordController', () => {
       providers: [BookViolationRecordService],
     }).compile();
 
-    controller = module.get<BookViolationRecordController>(BookViolationRecordController);
+    controller = module.get<BookViolationRecordController>(
+      BookViolationRecordController,
+    );
   });
 
   it('should be defined', () => {

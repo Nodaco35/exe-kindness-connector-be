@@ -16,7 +16,10 @@ export class BookViolationRecordService {
     return `This action returns a #${id} bookViolationRecord`;
   }
 
-  update(id: number, updateBookViolationRecordDto: UpdateBookViolationRecordDto) {
+  update(
+    id: number,
+    updateBookViolationRecordDto: UpdateBookViolationRecordDto,
+  ) {
     return `This action updates a #${id} bookViolationRecord`;
   }
 

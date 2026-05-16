@@ -11,7 +11,9 @@ describe('MembershipRecordController', () => {
       providers: [MembershipRecordService],
     }).compile();
 
-    controller = module.get<MembershipRecordController>(MembershipRecordController);
+    controller = module.get<MembershipRecordController>(
+      MembershipRecordController,
+    );
   });
 
   it('should be defined', () => {

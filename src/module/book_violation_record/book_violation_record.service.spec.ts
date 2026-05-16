@@ -9,7 +9,9 @@ describe('BookViolationRecordService', () => {
       providers: [BookViolationRecordService],
     }).compile();
 
-    service = module.get<BookViolationRecordService>(BookViolationRecordService);
+    service = module.get<BookViolationRecordService>(
+      BookViolationRecordService,
+    );
   });
 
   it('should be defined', () => {

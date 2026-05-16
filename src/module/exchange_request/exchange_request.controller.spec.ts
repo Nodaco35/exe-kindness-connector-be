@@ -11,7 +11,9 @@ describe('ExchangeRequestController', () => {
       providers: [ExchangeRequestService],
     }).compile();
 
-    controller = module.get<ExchangeRequestController>(ExchangeRequestController);
+    controller = module.get<ExchangeRequestController>(
+      ExchangeRequestController,
+    );
   });
 
   it('should be defined', () => {
