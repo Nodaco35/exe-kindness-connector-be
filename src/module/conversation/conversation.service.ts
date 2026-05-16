@@ -1,26 +1,73 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import mongoose, { Model } from 'mongoose';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
+import { Conversation } from './entities/conversation.entity';
 
 @Injectable()
 export class ConversationService {
-  create(createConversationDto: CreateConversationDto) {
-    return 'This action adds a new conversation';
+  constructor(
+    @InjectModel(Conversation.name)
+    private readonly conversationModel: Model<Conversation>,
+  ) {}
+
+  async create(createConversationDto: CreateConversationDto) {
+    return await this.conversationModel.create(createConversationDto);
   }
 
-  findAll() {
-    return `This action returns all conversation`;
+  async findAll() {
+    return await this.conversationModel.find().populate('members');
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} conversation`;
+  async findOne(id: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('Invalid conversation id');
+    }
+
+    const conversation = await this.conversationModel
+      .findById(id)
+      .populate('members');
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    return conversation;
   }
 
-  update(id: number, updateConversationDto: UpdateConversationDto) {
-    return `This action updates a #${id} conversation`;
+  async update(id: string, updateConversationDto: UpdateConversationDto) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('Invalid conversation id');
+    }
+
+    const updatedConversation = await this.conversationModel.findByIdAndUpdate(
+      id,
+      updateConversationDto,
+      { new: true },
+    );
+
+    if (!updatedConversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    return updatedConversation;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} conversation`;
+  async remove(id: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('Invalid conversation id');
+    }
+
+    const deletedConversation =
+      await this.conversationModel.findByIdAndDelete(id);
+
+    if (!deletedConversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    return {
+      message: 'Delete conversation successfully',
+    };
   }
 }

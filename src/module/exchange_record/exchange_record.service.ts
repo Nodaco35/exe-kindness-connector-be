@@ -1,26 +1,80 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import mongoose, { Model } from 'mongoose';
 import { CreateExchangeRecordDto } from './dto/create-exchange_record.dto';
 import { UpdateExchangeRecordDto } from './dto/update-exchange_record.dto';
+import { ExchangeRecord } from './entities/exchange_record.entity';
 
 @Injectable()
 export class ExchangeRecordService {
-  create(createExchangeRecordDto: CreateExchangeRecordDto) {
-    return 'This action adds a new exchangeRecord';
+  constructor(
+    @InjectModel(ExchangeRecord.name)
+    private readonly exchangeRecordModel: Model<ExchangeRecord>,
+  ) {}
+
+  async create(createExchangeRecordDto: CreateExchangeRecordDto) {
+    return await this.exchangeRecordModel.create(createExchangeRecordDto);
   }
 
-  findAll() {
-    return `This action returns all exchangeRecord`;
+  async findAll() {
+    return await this.exchangeRecordModel
+      .find()
+      .populate('exchangeRequest')
+      .populate('book')
+      .populate('requester')
+      .populate('owner');
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} exchangeRecord`;
+  async findOne(id: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('Invalid exchange record id');
+    }
+
+    const record = await this.exchangeRecordModel
+      .findById(id)
+      .populate('exchangeRequest')
+      .populate('book')
+      .populate('requester')
+      .populate('owner');
+
+    if (!record) {
+      throw new NotFoundException('Exchange record not found');
+    }
+
+    return record;
   }
 
-  update(id: number, updateExchangeRecordDto: UpdateExchangeRecordDto) {
-    return `This action updates a #${id} exchangeRecord`;
+  async update(id: string, updateExchangeRecordDto: UpdateExchangeRecordDto) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('Invalid exchange record id');
+    }
+
+    const updatedRecord = await this.exchangeRecordModel.findByIdAndUpdate(
+      id,
+      updateExchangeRecordDto,
+      { new: true },
+    );
+
+    if (!updatedRecord) {
+      throw new NotFoundException('Exchange record not found');
+    }
+
+    return updatedRecord;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} exchangeRecord`;
+  async remove(id: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('Invalid exchange record id');
+    }
+
+    const deletedRecord = await this.exchangeRecordModel.findByIdAndDelete(id);
+
+    if (!deletedRecord) {
+      throw new NotFoundException('Exchange record not found');
+    }
+
+    return {
+      message: 'Delete exchange record successfully',
+    };
   }
 }

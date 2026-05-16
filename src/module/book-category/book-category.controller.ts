@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { BookCategoryService } from './book-category.service';
 import { CreateBookCategoryDto } from './dto/create-book-category.dto';
 import { UpdateBookCategoryDto } from './dto/update-book-category.dto';
@@ -19,16 +27,19 @@ export class BookCategoryController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.bookCategoryService.findOne(+id);
+    return this.bookCategoryService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBookCategoryDto: UpdateBookCategoryDto) {
-    return this.bookCategoryService.update(+id, updateBookCategoryDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateBookCategoryDto: UpdateBookCategoryDto,
+  ) {
+    return this.bookCategoryService.update(id, updateBookCategoryDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.bookCategoryService.remove(+id);
+    return this.bookCategoryService.remove(id);
   }
 }

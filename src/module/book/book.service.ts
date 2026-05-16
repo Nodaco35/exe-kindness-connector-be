@@ -1,26 +1,79 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import mongoose, { Model } from 'mongoose';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
+import { Book } from './entities/book.entity';
 
 @Injectable()
 export class BookService {
-  create(createBookDto: CreateBookDto) {
-    return 'This action adds a new book';
+  constructor(
+    @InjectModel(Book.name) private readonly bookModel: Model<Book>,
+  ) {}
+
+  async create(createBookDto: CreateBookDto) {
+    return await this.bookModel.create(createBookDto);
   }
 
-  findAll() {
-    return `This action returns all book`;
+  async findAll() {
+    return await this.bookModel
+      .find()
+      .populate('categories')
+      .populate('advancedCategories')
+      .populate('owner');
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} book`;
+  async findOne(id: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('Invalid book id');
+    }
+
+    const book = await this.bookModel
+      .findById(id)
+      .populate('categories')
+      .populate('advancedCategories')
+      .populate('owner');
+
+    if (!book) {
+      throw new NotFoundException('Book not found');
+    }
+
+    return book;
   }
 
-  update(id: number, updateBookDto: UpdateBookDto) {
-    return `This action updates a #${id} book`;
+  async update(id: string, updateBookDto: UpdateBookDto) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('Invalid book id');
+    }
+
+    const updatedBook = await this.bookModel.findByIdAndUpdate(
+      id,
+      updateBookDto,
+      {
+        new: true,
+      },
+    );
+
+    if (!updatedBook) {
+      throw new NotFoundException('Book not found');
+    }
+
+    return updatedBook;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} book`;
+  async remove(id: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('Invalid book id');
+    }
+
+    const deletedBook = await this.bookModel.findByIdAndDelete(id);
+
+    if (!deletedBook) {
+      throw new NotFoundException('Book not found');
+    }
+
+    return {
+      message: 'Delete book successfully',
+    };
   }
 }
