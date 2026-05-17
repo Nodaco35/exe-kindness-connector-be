@@ -29,7 +29,7 @@ export class MembershipRecordController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.membershipRecordService.findOne(+id);
+    return this.membershipRecordService.findOne(id);
   }
 
   @Patch(':id')
@@ -37,11 +37,11 @@ export class MembershipRecordController {
     @Param('id') id: string,
     @Body() updateMembershipRecordDto: UpdateMembershipRecordDto,
   ) {
-    return this.membershipRecordService.update(+id, updateMembershipRecordDto);
+    return this.membershipRecordService.update(id, updateMembershipRecordDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.membershipRecordService.remove(+id);
+    return this.membershipRecordService.remove(id);
   }
 }

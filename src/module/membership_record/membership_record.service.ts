@@ -1,26 +1,62 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import mongoose, { Model } from 'mongoose';
 import { CreateMembershipRecordDto } from './dto/create-membership_record.dto';
 import { UpdateMembershipRecordDto } from './dto/update-membership_record.dto';
+import { MembershipRecord } from './entities/membership_record.entity';
 
 @Injectable()
 export class MembershipRecordService {
-  create(createMembershipRecordDto: CreateMembershipRecordDto) {
-    return 'This action adds a new membershipRecord';
+  constructor(
+    @InjectModel(MembershipRecord.name)
+    private membershipRecordModel: Model<MembershipRecord>,
+  ) {}
+
+  async create(createMembershipRecordDto: CreateMembershipRecordDto) {
+    return this.membershipRecordModel.create({
+      ...createMembershipRecordDto,
+      membershipId: new mongoose.Types.ObjectId(
+        createMembershipRecordDto.membershipId,
+      ),
+      userId: new mongoose.Types.ObjectId(createMembershipRecordDto.userId),
+    } as any);
   }
 
-  findAll() {
-    return `This action returns all membershipRecord`;
+  async findAll() {
+    return this.membershipRecordModel.find().exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} membershipRecord`;
+  async findOne(id: string) {
+    if (!mongoose.isValidObjectId(id))
+      throw new NotFoundException('Invalid id');
+    const membershipRecord = await this.membershipRecordModel
+      .findById(id)
+      .exec();
+    if (!membershipRecord)
+      throw new NotFoundException('MembershipRecord not found');
+    return membershipRecord;
   }
 
-  update(id: number, updateMembershipRecordDto: UpdateMembershipRecordDto) {
-    return `This action updates a #${id} membershipRecord`;
+  async update(
+    id: string,
+    updateMembershipRecordDto: UpdateMembershipRecordDto,
+  ) {
+    if (!mongoose.isValidObjectId(id))
+      throw new NotFoundException('Invalid id');
+    const updated = await this.membershipRecordModel
+      .findByIdAndUpdate(id, updateMembershipRecordDto as any, { new: true })
+      .exec();
+    if (!updated) throw new NotFoundException('MembershipRecord not found');
+    return updated;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} membershipRecord`;
+  async remove(id: string) {
+    if (!mongoose.isValidObjectId(id))
+      throw new NotFoundException('Invalid id');
+    const deleted = await this.membershipRecordModel
+      .findByIdAndDelete(id)
+      .exec();
+    if (!deleted) throw new NotFoundException('MembershipRecord not found');
+    return { deleted: true };
   }
 }

@@ -27,7 +27,7 @@ export class MessageStatusController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.messageStatusService.findOne(+id);
+    return this.messageStatusService.findOne(id);
   }
 
   @Patch(':id')
@@ -35,11 +35,11 @@ export class MessageStatusController {
     @Param('id') id: string,
     @Body() updateMessageStatusDto: UpdateMessageStatusDto,
   ) {
-    return this.messageStatusService.update(+id, updateMessageStatusDto);
+    return this.messageStatusService.update(id, updateMessageStatusDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.messageStatusService.remove(+id);
+    return this.messageStatusService.remove(id);
   }
 }

@@ -1,11 +1,28 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
-import { Membership_Status } from 'src/common/enums/status.enum';
+import { Membership_Status } from '../../../common/enums/status.enum';
 
-enum Method {
+export enum PaymentMethod {
   CASH = 'CASH',
   ONLINE = 'ONLINE',
 }
+
+@Schema({ _id: false })
+export class Payment {
+  @Prop({ type: String, enum: PaymentMethod, required: true })
+  method!: PaymentMethod;
+
+  @Prop()
+  transactionId?: string;
+
+  @Prop()
+  amount?: number;
+
+  @Prop()
+  paidAt?: Date;
+}
+
+export const PaymentSchema = SchemaFactory.createForClass(Payment);
 
 @Schema({
   timestamps: true,
@@ -15,24 +32,18 @@ export class Membership {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   })
-  user!: mongoose.Types.ObjectId;
+  userId!: mongoose.Types.ObjectId;
 
-  @Prop()
+  @Prop({ required: true })
   startDate!: Date;
 
-  @Prop()
+  @Prop({ required: true })
   endDate!: Date;
 
-  @Prop()
+  @Prop({ type: String, enum: Membership_Status, required: true })
   status!: Membership_Status;
 
-  @Prop()
-  method!: Method;
-
-  @Prop()
-  transactionId!: string;
-
-  @Prop()
-  amount!: number;
+  @Prop({ type: PaymentSchema, required: false })
+  payment?: Payment;
 }
 export const MembershipSchema = SchemaFactory.createForClass(Membership);

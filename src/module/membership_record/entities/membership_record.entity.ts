@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 
-enum Action {
+export enum MembershipRecordAction {
   CREATED = 'CREATED',
   RENEWED = 'RENEWED',
   CANCELED = 'CANCELED',
@@ -15,16 +15,16 @@ export class MembershipRecord {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Membership',
   })
-  membership!: mongoose.Types.ObjectId;
+  membershipId!: mongoose.Types.ObjectId;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   })
-  user!: mongoose.Types.ObjectId;
+  userId!: mongoose.Types.ObjectId;
 
-  @Prop()
-  action!: Action;
+  @Prop({ type: String, enum: MembershipRecordAction, required: true })
+  action!: MembershipRecordAction;
 }
 export const MembershipRecordSchema =
   SchemaFactory.createForClass(MembershipRecord);

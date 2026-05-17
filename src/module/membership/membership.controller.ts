@@ -27,7 +27,7 @@ export class MembershipController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.membershipService.findOne(+id);
+    return this.membershipService.findOne(id);
   }
 
   @Patch(':id')
@@ -35,11 +35,11 @@ export class MembershipController {
     @Param('id') id: string,
     @Body() updateMembershipDto: UpdateMembershipDto,
   ) {
-    return this.membershipService.update(+id, updateMembershipDto);
+    return this.membershipService.update(id, updateMembershipDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.membershipService.remove(+id);
+    return this.membershipService.remove(id);
   }
 }

@@ -1,26 +1,52 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import mongoose, { Model } from 'mongoose';
 import { CreateMessageStatusDto } from './dto/create-message_status.dto';
 import { UpdateMessageStatusDto } from './dto/update-message_status.dto';
+import { MessageStatus } from './entities/message_status.entity';
 
 @Injectable()
 export class MessageStatusService {
-  create(createMessageStatusDto: CreateMessageStatusDto) {
-    return 'This action adds a new messageStatus';
+  constructor(
+    @InjectModel(MessageStatus.name)
+    private messageStatusModel: Model<MessageStatus>,
+  ) {}
+
+  async create(createMessageStatusDto: CreateMessageStatusDto) {
+    return this.messageStatusModel.create({
+      ...createMessageStatusDto,
+      messageId: new mongoose.Types.ObjectId(createMessageStatusDto.messageId),
+      userId: new mongoose.Types.ObjectId(createMessageStatusDto.userId),
+    } as any);
   }
 
-  findAll() {
-    return `This action returns all messageStatus`;
+  async findAll() {
+    return this.messageStatusModel.find().exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} messageStatus`;
+  async findOne(id: string) {
+    if (!mongoose.isValidObjectId(id))
+      throw new NotFoundException('Invalid id');
+    const messageStatus = await this.messageStatusModel.findById(id).exec();
+    if (!messageStatus) throw new NotFoundException('MessageStatus not found');
+    return messageStatus;
   }
 
-  update(id: number, updateMessageStatusDto: UpdateMessageStatusDto) {
-    return `This action updates a #${id} messageStatus`;
+  async update(id: string, updateMessageStatusDto: UpdateMessageStatusDto) {
+    if (!mongoose.isValidObjectId(id))
+      throw new NotFoundException('Invalid id');
+    const updated = await this.messageStatusModel
+      .findByIdAndUpdate(id, updateMessageStatusDto as any, { new: true })
+      .exec();
+    if (!updated) throw new NotFoundException('MessageStatus not found');
+    return updated;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} messageStatus`;
+  async remove(id: string) {
+    if (!mongoose.isValidObjectId(id))
+      throw new NotFoundException('Invalid id');
+    const deleted = await this.messageStatusModel.findByIdAndDelete(id).exec();
+    if (!deleted) throw new NotFoundException('MessageStatus not found');
+    return { deleted: true };
   }
 }

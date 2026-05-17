@@ -1,31 +1,31 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
-import { MessageType } from 'src/common/enums/type.enum';
+import { MessageType } from '../../../common/enums/type.enum';
 
-@Schema()
+@Schema({ timestamps: false })
 export class Message {
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Conversation',
   })
-  conversation!: mongoose.Types.ObjectId;
+  conversationId!: mongoose.Types.ObjectId;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   })
-  sender!: mongoose.Types.ObjectId;
+  senderId!: mongoose.Types.ObjectId;
 
-  @Prop()
+  @Prop({ required: true })
   content!: string;
 
-  @Prop()
+  @Prop({ type: String, enum: MessageType, required: true })
   type!: MessageType;
 
-  @Prop()
+  @Prop({ required: true })
   sentAt!: Date;
 
-  @Prop()
-  isDelete!: boolean;
+  @Prop({ default: false })
+  isDeleted!: boolean;
 }
 export const MessageSchema = SchemaFactory.createForClass(Message);

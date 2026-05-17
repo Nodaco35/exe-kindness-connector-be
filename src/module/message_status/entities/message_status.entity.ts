@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
-import { Message_Status } from 'src/common/enums/status.enum';
+import { Message_Status } from '../../../common/enums/status.enum';
 
 @Schema({
   timestamps: {
@@ -13,15 +13,15 @@ export class MessageStatus {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Message',
   })
-  message!: mongoose.Types.ObjectId;
+  messageId!: mongoose.Types.ObjectId;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   })
-  user!: mongoose.Types.ObjectId;
+  userId!: mongoose.Types.ObjectId;
 
-  @Prop()
+  @Prop({ type: String, enum: Message_Status, required: true })
   status!: Message_Status;
 }
 export const MessageStatusSchema = SchemaFactory.createForClass(MessageStatus);
