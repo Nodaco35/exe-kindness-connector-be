@@ -1,37 +1,42 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { UserRole } from 'src/common/enums/role.enum';
-import { Status_ACTIVE_LOCKED } from 'src/common/enums/status.enum';
+import { UserRole } from '../../../common/enums/role.enum';
+import { Status_ACTIVE_LOCKED } from '../../../common/enums/status.enum';
 import { Address, AddressSchema } from '../../../common/schemas/address.schema';
 
-
 @Schema({
-    timestamps: true
+  timestamps: true,
 })
 export class User {
-  @Prop()
-  email!: string;
-
-  @Prop()
-  password!: string;
-
-  @Prop()
+  @Prop({ required: true, trim: true })
   fullName!: string;
 
-  @Prop()
+  @Prop({ required: true, unique: true, trim: true, lowercase: true })
+  email!: string;
+
+  @Prop({ required: true })
+  password!: string;
+
+  @Prop({ type: String, enum: UserRole, default: UserRole.USER })
   role!: UserRole;
 
-  @Prop()
+  @Prop({
+    type: String,
+    enum: Status_ACTIVE_LOCKED,
+    default: Status_ACTIVE_LOCKED.ACTIVE,
+  })
   status!: Status_ACTIVE_LOCKED;
 
   @Prop()
-  avatar!: string;
+  avatar?: string;
+
+  @Prop()
+  phone?: string;
 
   @Prop({
-    type: [AddressSchema]
+    type: [AddressSchema],
+    default: [],
   })
-  address!: Address[]
-  
-
+  address!: Address[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
