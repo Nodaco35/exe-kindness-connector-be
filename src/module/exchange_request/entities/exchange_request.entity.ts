@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
-import { Exchange_Status } from 'src/common/enums/status.enum';
+import { Exchange_Status } from '../../../common/enums/status.enum';
 
 @Schema({
   timestamps: {
@@ -13,31 +13,31 @@ export class ExchangeRequest {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Book',
   })
-  book!: mongoose.Types.ObjectId;
+  bookId!: mongoose.Types.ObjectId;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   })
-  requester!: mongoose.Types.ObjectId;
+  requesterId!: mongoose.Types.ObjectId;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   })
-  owner!: mongoose.Types.ObjectId;
+  ownerId!: mongoose.Types.ObjectId;
 
-  @Prop()
+  @Prop({ required: true })
   message!: string;
 
-  @Prop()
+  @Prop({ type: String, enum: Exchange_Status, default: Exchange_Status.PENDING })
   status!: Exchange_Status;
 
   @Prop()
-  respondedAt!: Date;
+  respondedAt?: Date;
 
   @Prop()
-  completedAt!: Date;
+  completedAt?: Date;
 }
 export const ExchangeRequestSchema =
   SchemaFactory.createForClass(ExchangeRequest);

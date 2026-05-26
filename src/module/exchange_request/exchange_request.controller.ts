@@ -15,7 +15,7 @@ import { UpdateExchangeRequestDto } from './dto/update-exchange_request.dto';
 export class ExchangeRequestController {
   constructor(
     private readonly exchangeRequestService: ExchangeRequestService,
-  ) {}
+  ) { }
 
   @Post()
   create(@Body() createExchangeRequestDto: CreateExchangeRequestDto) {
@@ -29,7 +29,7 @@ export class ExchangeRequestController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.exchangeRequestService.findOne(+id);
+    return this.exchangeRequestService.findOne(id);
   }
 
   @Patch(':id')
@@ -37,11 +37,11 @@ export class ExchangeRequestController {
     @Param('id') id: string,
     @Body() updateExchangeRequestDto: UpdateExchangeRequestDto,
   ) {
-    return this.exchangeRequestService.update(+id, updateExchangeRequestDto);
+    return this.exchangeRequestService.update(id, updateExchangeRequestDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.exchangeRequestService.remove(+id);
+    return this.exchangeRequestService.remove(id);
   }
 }

@@ -1,26 +1,52 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import mongoose, { Model } from 'mongoose';
 import { CreateExchangeRequestDto } from './dto/create-exchange_request.dto';
 import { UpdateExchangeRequestDto } from './dto/update-exchange_request.dto';
+import { ExchangeRequest } from './entities/exchange_request.entity';
 
 @Injectable()
 export class ExchangeRequestService {
-  create(createExchangeRequestDto: CreateExchangeRequestDto) {
-    return 'This action adds a new exchangeRequest';
+  constructor(
+    @InjectModel(ExchangeRequest.name)
+    private exchangeRequestModel: Model<ExchangeRequest>,
+  ) { }
+
+  async create(createExchangeRequestDto: CreateExchangeRequestDto) {
+    return this.exchangeRequestModel.create({
+      ...createExchangeRequestDto,
+      bookId: new mongoose.Types.ObjectId(createExchangeRequestDto.bookId),
+      requesterId: new mongoose.Types.ObjectId(
+        createExchangeRequestDto.requesterId,
+      ),
+      ownerId: new mongoose.Types.ObjectId(createExchangeRequestDto.ownerId),
+    } as any);
   }
 
-  findAll() {
-    return `This action returns all exchangeRequest`;
+  async findAll() {
+    return this.exchangeRequestModel.find().exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} exchangeRequest`;
+  async findOne(id: string) {
+    if (!mongoose.isValidObjectId(id)) throw new NotFoundException('Invalid id');
+    const exchangeRequest = await this.exchangeRequestModel.findById(id).exec();
+    if (!exchangeRequest) throw new NotFoundException('ExchangeRequest not found');
+    return exchangeRequest;
   }
 
-  update(id: number, updateExchangeRequestDto: UpdateExchangeRequestDto) {
-    return `This action updates a #${id} exchangeRequest`;
+  async update(id: string, updateExchangeRequestDto: UpdateExchangeRequestDto) {
+    if (!mongoose.isValidObjectId(id)) throw new NotFoundException('Invalid id');
+    const updated = await this.exchangeRequestModel
+      .findByIdAndUpdate(id, updateExchangeRequestDto as any, { new: true })
+      .exec();
+    if (!updated) throw new NotFoundException('ExchangeRequest not found');
+    return updated;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} exchangeRequest`;
+  async remove(id: string) {
+    if (!mongoose.isValidObjectId(id)) throw new NotFoundException('Invalid id');
+    const deleted = await this.exchangeRequestModel.findByIdAndDelete(id).exec();
+    if (!deleted) throw new NotFoundException('ExchangeRequest not found');
+    return { deleted: true };
   }
 }
