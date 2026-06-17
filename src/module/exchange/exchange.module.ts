@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Exchange, ExchangeSchema } from './entities/exchange.entity';
 import { ChatModule } from '../chat/chat.module';
 import { User, UserSchema } from '../user/entities/user.entity';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { User, UserSchema } from '../user/entities/user.entity';
       { name: User.name, schema: UserSchema }
     ]),
     ChatModule,
+    NotificationModule,
   ],
   controllers: [ExchangeController],
   providers: [ExchangeService],

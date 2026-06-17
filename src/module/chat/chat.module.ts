@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
 import { ChatGateway } from './chat.gateway';
+import { NotificationModule } from '../notification/notification.module';
 
 import { MongooseModule } from '@nestjs/mongoose';
 import { ChatRoom, ChatRoomSchema } from './entities/chat-room.entity';
@@ -13,6 +14,7 @@ import { Message, MessageSchema } from './entities/message.entity';
       { name: ChatRoom.name, schema: ChatRoomSchema },
       { name: Message.name, schema: MessageSchema },
     ]),
+    NotificationModule,
   ],
   controllers: [ChatController],
   providers: [ChatService, ChatGateway],
