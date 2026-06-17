@@ -5,6 +5,7 @@ import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { Book } from './entities/book.entity';
 import { User } from '../user/entities/user.entity';
+import { Book_Status } from '../../common/enums/status.enum';
 
 @Injectable()
 export class BookService {
@@ -30,6 +31,14 @@ export class BookService {
         { title: { $regex: query.search, $options: 'i' } },
         { author: { $regex: query.search, $options: 'i' } },
       ];
+    }
+    
+    if (query?.status) {
+      if (query.status !== 'all') {
+        filter.status = query.status;
+      }
+    } else {
+      filter.status = Book_Status.AVAILABLE;
     }
 
     return await this.bookModel.find(filter).populate('owner');
