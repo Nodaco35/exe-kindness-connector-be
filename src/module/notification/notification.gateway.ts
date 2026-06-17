@@ -6,6 +6,8 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { NotificationService } from './notification.service';
+import { forwardRef, Inject } from '@nestjs/common';
 
 @WebSocketGateway({
   cors: {
@@ -15,6 +17,11 @@ import { Server, Socket } from 'socket.io';
 export class NotificationGateway {
   @WebSocketServer()
   server!: Server;
+
+  constructor(
+    @Inject(forwardRef(() => NotificationService))
+    private notificationService: NotificationService
+  ) {}
 
   @SubscribeMessage('register')
   handleRegister(
@@ -46,15 +53,20 @@ export class NotificationGateway {
   }
 
   // Phương thức này cho phép các Service khác gọi vào để gửi thông báo thật
-  sendNotificationToUser(userId: string, type: string, title: string, message: string) {
+  async sendNotificationToUser(userId: string, type: string, title: string, message: string) {
+    // 1. Lưu vào Database trước để chống thất lạc
+    const notification = await this.notificationService.createNotification(userId, type, title, message);
+
+    // 2. Định dạng dữ liệu và bắn qua Socket
     const data = {
-      id: Date.now().toString(),
+      id: notification._id.toString(),
       type,
       title,
       message,
-      createdAt: Date.now(),
+      createdAt: (notification as any).createdAt,
       isRead: false,
     };
     this.server.to(`user_${userId}`).emit('new_notification', data);
+    console.log(`[NotificationGateway] Emitted new_notification to user_${userId}`, title);
   }
 }

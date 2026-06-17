@@ -8,12 +8,14 @@ import { ChatGateway } from '../chat/chat.gateway';
 import { NotificationGateway } from '../notification/notification.gateway';
 
 import { User } from '../user/entities/user.entity';
+import { Book } from '../book/entities/book.entity';
 
 @Injectable()
 export class ExchangeService {
   constructor(
     @InjectModel(Exchange.name) private exchangeModel: Model<Exchange>,
     @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(Book.name) private bookModel: Model<Book>,
     private chatService: ChatService,
     private chatGateway: ChatGateway,
     private notificationGateway: NotificationGateway,
@@ -52,6 +54,10 @@ export class ExchangeService {
     
     const sysMsg = await this.chatService.saveSystemMessage(chatRoom._id.toString(), msgContent);
     this.chatGateway.server.to(chatRoom._id.toString()).emit('newMessage', sysMsg);
+
+    // Phát sự kiện newChatRoom cho cả 2 người dùng để màn hình chat tự tải lại mà không cần F5
+    this.chatGateway.server.to(`user_${requesterId}`).emit('newChatRoom', { chatRoomId: chatRoom._id });
+    this.chatGateway.server.to(`user_${ownerId}`).emit('newChatRoom', { chatRoomId: chatRoom._id });
 
     exchange.chatRoomId = chatRoom._id as any;
     await exchange.save();
@@ -97,7 +103,14 @@ export class ExchangeService {
     }
 
     exchange.status = status;
-    return exchange.save();
+    await exchange.save();
+
+    if (exchange.chatRoomId) {
+      this.chatGateway.server.to(`user_${exchange.requester.toString()}`).emit('exchangeUpdated', { exchangeId: exchange._id });
+      this.chatGateway.server.to(`user_${exchange.owner.toString()}`).emit('exchangeUpdated', { exchangeId: exchange._id });
+    }
+
+    return exchange;
   }
 
   async cancelExchange(exchangeId: string, userId: string) {
@@ -143,6 +156,8 @@ export class ExchangeService {
 
     exchange.status = Exchange_Status.COMPLETED;
     await exchange.save();
+
+    await this.bookModel.findByIdAndUpdate(exchange.book, { status: 'EXCHANGED' });
 
     // Add points: Owner gets 2, Requester gets 1 (from new requirements)
     await this.userModel.findByIdAndUpdate(exchange.owner.toString(), { $inc: { points: 2 } }).exec();
