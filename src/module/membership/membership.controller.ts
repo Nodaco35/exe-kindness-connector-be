@@ -1,15 +1,7 @@
+// membership.controller.ts
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-  Req,
-  HttpCode,
-  Headers,
+  Controller, Get, Post, Body, Patch, Param, Delete,
+  UseGuards, Req, HttpCode, Logger
 } from '@nestjs/common';
 import { MembershipService } from './membership.service';
 import { CreateMembershipDto } from './dto/create-membership.dto';
@@ -18,48 +10,46 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('membership')
 export class MembershipController {
+  private readonly logger = new Logger(MembershipController.name);
+
   constructor(private readonly membershipService: MembershipService) { }
 
   @UseGuards(JwtAuthGuard)
-  @Post('checkout')
-  createCheckout(
-    @Req() req: any,
-    @Body()
-    body: { successUrl?: string; errorUrl?: string; cancelUrl?: string },
-  ) {
-    return this.membershipService.createCheckout(req.user.userId, body);
+  @Get('qr-info')
+  getQrInfo(@Req() req: any) {
+    return this.membershipService.getQrInfo(req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('env-config')
+  getEnvConfig() {
+    return this.membershipService.getEnvConfig();
   }
 
   /**
-   * Webhook endpoint cho SePay
-   * QUAN TRỌNG:
-   * - Phải trả về HTTP 200 OK
-   * - Response phải có dạng {"success": true}
+   * Webhook endpoint cho SePay (KHÔNG xác thực)
+   * URL: POST /membership/sepay-webhook
    */
-  @Post('webhook/sepay') // Đổi tên để rõ ràng hơn
-  @HttpCode(200) // BẮT BUỘC: SePay yêu cầu HTTP 200
-  async receiveSePayWebhook(
-    @Body() payload: any,
-    @Headers('x-sepay-signature') signature?: string, // Nhận signature để xác thực
-  ) {
-    // Gọi service xử lý webhook
-    const result = await this.membershipService.handleSePayWebhook(
-      payload,
-      signature,
-    );
+  @Post('sepay-webhook')
+  @HttpCode(200)  // BẮT BUỘC: SePay yêu cầu HTTP 200
+  async sepayWebhook(@Body() body: any) {
+    // Log để debug
+    this.logger.log('📨 Webhook received at:', new Date().toISOString());
+    this.logger.log('📦 Payload:', JSON.stringify(body, null, 2));
 
-    // Luôn trả về đúng format SePay yêu cầu
-    return { success: true };
-  }
+    try {
+      // Xử lý webhook
+      const result = await this.membershipService.handleSepayWebhook(body);
+      this.logger.log('✅ Webhook processed:', result);
 
-  /**
-   * Endpoint cũ để tương thích (có thể xóa sau)
-   */
-  @Post('webhook')
-  @HttpCode(200)
-  async receiveLegacyWebhook(@Body() payload: any) {
-    // Chuyển hướng sang handler mới
-    return this.receiveSePayWebhook(payload);
+      // Luôn trả về đúng format SePay yêu cầu
+      return { success: true };
+
+    } catch (error) {
+      // KHÔNG throw lỗi, vẫn trả về 200 để SePay không retry
+      this.logger.error('❌ Webhook error:', error.message);
+      return { success: true, message: 'Error logged' };
+    }
   }
 
   @Post()
@@ -78,10 +68,7 @@ export class MembershipController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateMembershipDto: UpdateMembershipDto,
-  ) {
+  update(@Param('id') id: string, @Body() updateMembershipDto: UpdateMembershipDto) {
     return this.membershipService.update(+id, updateMembershipDto);
   }
 
