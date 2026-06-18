@@ -9,7 +9,6 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
-import { NotificationGateway } from '../notification/notification.gateway';
 
 @WebSocketGateway({
   cors: {
@@ -20,10 +19,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server!: Server;
 
-  constructor(
-    private readonly chatService: ChatService,
-    private readonly notificationGateway: NotificationGateway
-  ) {}
+  constructor(private readonly chatService: ChatService) {}
 
   handleConnection(client: Socket) {
     // Usually you would extract JWT and map userId to socketId
@@ -35,18 +31,56 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('joinRoom')
-  handleJoinRoom(
+  async handleJoinRoom(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { roomId: string },
+    @MessageBody() payload: { roomId: string; userId?: string },
   ) {
-    client.join(payload.roomId);
-    console.log(`Client ${client.id} joined room: ${payload.roomId}`);
+    try {
+      client.join(payload.roomId);
+      console.log(`Client ${client.id} joined room: ${payload.roomId}`);
+
+      if (payload.userId) {
+        await this.chatService.markMessagesAsSeen(
+          payload.roomId,
+          payload.userId,
+        );
+        this.server.to(payload.roomId).emit('messagesSeen', {
+          roomId: payload.roomId,
+          userId: payload.userId,
+        });
+      }
+    } catch (error: any) {
+      console.error('Error in joinRoom:', error);
+      client.emit('errorMessage', {
+        message: 'Error marking messages as seen: ' + error.message,
+      });
+    }
+  }
+
+  @SubscribeMessage('markAsSeen')
+  async handleMarkAsSeen(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { roomId: string; userId: string },
+  ) {
+    try {
+      await this.chatService.markMessagesAsSeen(payload.roomId, payload.userId);
+      this.server.to(payload.roomId).emit('messagesSeen', {
+        roomId: payload.roomId,
+        userId: payload.userId,
+      });
+    } catch (error: any) {
+      console.error('Error in markAsSeen:', error);
+      client.emit('errorMessage', {
+        message: 'Error in markAsSeen: ' + error.message,
+      });
+    }
   }
 
   @SubscribeMessage('sendMessage')
   async handleMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { roomId: string; senderId: string; content: string },
+    @MessageBody()
+    payload: { roomId: string; senderId: string; content: string },
   ) {
     try {
       // Save message to DB
@@ -58,22 +92,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       // Broadcast to everyone in the room (including sender to confirm)
       this.server.to(payload.roomId).emit('newMessage', message);
-
-      // Gửi Real-time Notification cho người nhận
-      const room = await this.chatService.getRoomById(payload.roomId);
-      if (room && room.participants) {
-        const otherUserIds = room.participants.filter(p => p.toString() !== payload.senderId);
-        otherUserIds.forEach(id => {
-          this.notificationGateway.sendNotificationToUser(
-            id.toString(),
-            'CHAT_MESSAGE',
-            'Tin nhắn mới',
-            payload.content
-          );
-        });
-      }
     } catch (error: any) {
-      client.emit('errorMessage', { message: error.message || 'Error sending message' });
+      client.emit('errorMessage', {
+        message: error.message || 'Error sending message',
+      });
     }
   }
 }
