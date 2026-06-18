@@ -1,4 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, UnauthorizedException } from '@nestjs/common';
+// membership.controller.ts
+import {
+  Controller, Get, Post, Body, Patch, Param, Delete,
+  UseGuards, Req, HttpCode, Logger
+} from '@nestjs/common';
 import { MembershipService } from './membership.service';
 import { CreateMembershipDto } from './dto/create-membership.dto';
 import { UpdateMembershipDto } from './dto/update-membership.dto';
@@ -6,7 +10,9 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('membership')
 export class MembershipController {
-  constructor(private readonly membershipService: MembershipService) {}
+  private readonly logger = new Logger(MembershipController.name);
+
+  constructor(private readonly membershipService: MembershipService) { }
 
   @UseGuards(JwtAuthGuard)
   @Get('qr-info')
@@ -20,16 +26,30 @@ export class MembershipController {
     return this.membershipService.getEnvConfig();
   }
 
+  /**
+   * Webhook endpoint cho SePay (KHÔNG xác thực)
+   * URL: POST /membership/sepay-webhook
+   */
   @Post('sepay-webhook')
-  async sepayWebhook(@Body() body: any, @Req() req: any) {
-    const authHeader = req.headers.authorization;
-    const secretKey = process.env.SEPAY_MERCHANT_SECRET_KEY;
-    if (secretKey) {
-      if (authHeader !== `Bearer ${secretKey}`) {
-        throw new UnauthorizedException('Invalid signature token');
-      }
+  @HttpCode(200)  // BẮT BUỘC: SePay yêu cầu HTTP 200
+  async sepayWebhook(@Body() body: any) {
+    // Log để debug
+    this.logger.log('📨 Webhook received at:', new Date().toISOString());
+    this.logger.log('📦 Payload:', JSON.stringify(body, null, 2));
+
+    try {
+      // Xử lý webhook
+      const result = await this.membershipService.handleSepayWebhook(body);
+      this.logger.log('✅ Webhook processed:', result);
+
+      // Luôn trả về đúng format SePay yêu cầu
+      return { success: true };
+
+    } catch (error) {
+      // KHÔNG throw lỗi, vẫn trả về 200 để SePay không retry
+      this.logger.error('❌ Webhook error:', error.message);
+      return { success: true, message: 'Error logged' };
     }
-    return this.membershipService.handleSepayWebhook(body);
   }
 
   @Post()
