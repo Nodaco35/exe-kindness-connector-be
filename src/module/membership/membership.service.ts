@@ -94,6 +94,21 @@ export class MembershipService {
     return { success: true, message: 'Membership updated successfully' };
   }
 
+  getEnvConfig() {
+    return {
+      SEPAY_BANK_ACCOUNT: process.env.SEPAY_BANK_ACCOUNT || 'Chưa định nghĩa (UNDEFINED)',
+      SEPAY_BANK_NAME: process.env.SEPAY_BANK_NAME || 'Chưa định nghĩa (UNDEFINED)',
+      MEMBERSHIP_PRICE: process.env.MEMBERSHIP_PRICE || 'Chưa định nghĩa (UNDEFINED)',
+      SEPAY_MERCHANT_ID: process.env.SEPAY_MERCHANT_ID || 'Chưa định nghĩa (UNDEFINED)',
+      SEPAY_ENV: process.env.SEPAY_ENV || 'Chưa định nghĩa (UNDEFINED)',
+      FRONTEND_URL: process.env.FRONTEND_URL || 'Chưa định nghĩa (UNDEFINED)',
+      SEPAY_MERCHANT_SECRET_KEY: process.env.SEPAY_MERCHANT_SECRET_KEY
+        ? `${process.env.SEPAY_MERCHANT_SECRET_KEY.slice(0, 10)}...***`
+        : 'Chưa cài đặt (NOT_SET)',
+      MONGODB_URI: process.env.MONGODB_URI ? 'Đã kết nối (Đã ẩn)' : 'Chưa định nghĩa (UNDEFINED)',
+    };
+  }
+
   create(createMembershipDto: CreateMembershipDto) {
     return 'This action adds a new membership';
   }

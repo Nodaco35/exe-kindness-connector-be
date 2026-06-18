@@ -14,6 +14,12 @@ export class MembershipController {
     return this.membershipService.getQrInfo(req.user.userId);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('env-config')
+  getEnvConfig() {
+    return this.membershipService.getEnvConfig();
+  }
+
   @Post('sepay-webhook')
   async sepayWebhook(@Body() body: any, @Req() req: any) {
     const authHeader = req.headers.authorization;
