@@ -67,7 +67,8 @@ export class ExchangeService {
       ownerId,
       'BOOK_REQUEST',
       'Yêu cầu nhận sách mới',
-      msgContent
+      msgContent,
+      `/requests`
     );
 
     return exchange;

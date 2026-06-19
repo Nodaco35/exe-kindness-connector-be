@@ -68,7 +68,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             id.toString(),
             'CHAT_MESSAGE',
             'Tin nhắn mới',
-            payload.content
+            payload.content,
+            `/chat?room=${payload.roomId}`
           );
         });
       }

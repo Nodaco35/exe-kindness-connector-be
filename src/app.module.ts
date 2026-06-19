@@ -22,6 +22,7 @@ import { AdminModule } from './module/admin/admin.module';
 import { ReviewModule } from './module/review/review.module';
 import { UploadModule } from './module/upload/upload.module';
 import { NotificationModule } from './module/notification/notification.module';
+import { CommentModule } from './module/comment/comment.module';
 
 @Module({
   imports: [
@@ -47,6 +48,8 @@ import { NotificationModule } from './module/notification/notification.module';
     AdminModule,
     ReviewModule,
     UploadModule,
+    NotificationModule,
+    CommentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

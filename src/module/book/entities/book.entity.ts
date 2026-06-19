@@ -49,5 +49,8 @@ export class Book {
 
   @Prop()
   viewCount!: number;
+
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], default: [] })
+  likes!: mongoose.Types.ObjectId[];
 }
 export const BookSchema = SchemaFactory.createForClass(Book);

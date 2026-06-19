@@ -37,6 +37,12 @@ export class BookController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post(':id/like')
+  toggleLike(@Param('id') id: string, @Req() req: any) {
+    return this.bookService.toggleLike(id, req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateBookDto: UpdateBookDto) {
     return this.bookService.update(id, updateBookDto);
