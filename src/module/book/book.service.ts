@@ -139,17 +139,24 @@ export class BookService {
     const userObjId = new mongoose.Types.ObjectId(userId) as any;
     const likeIndex = book.likes?.findIndex(like => like.toString() === userId) ?? -1;
 
+    let updatedBook;
     if (likeIndex > -1) {
       // Đã like -> unlike
-      book.likes.splice(likeIndex, 1);
+      updatedBook = await this.bookModel.findByIdAndUpdate(
+        id,
+        { $pull: { likes: userObjId } },
+        { new: true, runValidators: false }
+      );
     } else {
       // Chưa like -> like
-      if (!book.likes) book.likes = [];
-      book.likes.push(userObjId);
+      updatedBook = await this.bookModel.findByIdAndUpdate(
+        id,
+        { $addToSet: { likes: userObjId } },
+        { new: true, runValidators: false }
+      );
     }
 
-    await book.save();
-    return book.likes;
+    return updatedBook?.likes || [];
   }
 
   async update(id: string, updateBookDto: UpdateBookDto) {
