@@ -52,5 +52,18 @@ export class Book {
 
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], default: [] })
   likes!: mongoose.Types.ObjectId[];
+  @Prop({
+    type: {
+      type: String,
+      enum: ['Point'],
+      required: false,
+    },
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+      required: false,
+    },
+  })
+  geo?: { type: string; coordinates: number[] };
 }
 export const BookSchema = SchemaFactory.createForClass(Book);
+BookSchema.index({ geo: '2dsphere' });

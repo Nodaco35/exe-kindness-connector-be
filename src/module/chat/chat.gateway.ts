@@ -22,7 +22,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(
     private readonly chatService: ChatService,
-    private readonly notificationGateway: NotificationGateway
+    private readonly notificationGateway: NotificationGateway,
   ) {}
 
   handleConnection(client: Socket) {
@@ -35,18 +35,56 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('joinRoom')
-  handleJoinRoom(
+  async handleJoinRoom(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { roomId: string },
+    @MessageBody() payload: { roomId: string; userId?: string },
   ) {
-    client.join(payload.roomId);
-    console.log(`Client ${client.id} joined room: ${payload.roomId}`);
+    try {
+      client.join(payload.roomId);
+      console.log(`Client ${client.id} joined room: ${payload.roomId}`);
+
+      if (payload.userId) {
+        await this.chatService.markMessagesAsSeen(
+          payload.roomId,
+          payload.userId,
+        );
+        this.server.to(payload.roomId).emit('messagesSeen', {
+          roomId: payload.roomId,
+          userId: payload.userId,
+        });
+      }
+    } catch (error: any) {
+      console.error('Error in joinRoom:', error);
+      client.emit('errorMessage', {
+        message: 'Error marking messages as seen: ' + error.message,
+      });
+    }
+  }
+
+  @SubscribeMessage('markAsSeen')
+  async handleMarkAsSeen(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { roomId: string; userId: string },
+  ) {
+    try {
+      await this.chatService.markMessagesAsSeen(payload.roomId, payload.userId);
+      this.server.to(payload.roomId).emit('messagesSeen', {
+        roomId: payload.roomId,
+        userId: payload.userId,
+      });
+    } catch (error: any) {
+      console.error('Error in markAsSeen:', error);
+      client.emit('errorMessage', {
+        message: 'Error in markAsSeen: ' + error.message,
+      });
+    }
   }
 
   @SubscribeMessage('sendMessage')
   async handleMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() payload: { roomId: string; senderId: string; content: string },
+    @MessageBody()
+    payload: { roomId: string; senderId: string; content: string },
   ) {
     try {
       // Save message to DB
@@ -74,7 +112,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         });
       }
     } catch (error: any) {
-      client.emit('errorMessage', { message: error.message || 'Error sending message' });
+      client.emit('errorMessage', {
+        message: error.message || 'Error sending message',
+      });
     }
   }
 }

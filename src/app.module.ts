@@ -40,7 +40,8 @@ import { CommentModule } from './module/comment/comment.module';
     BookViolationModule,
     BookViolationRecordModule,
     MongooseModule.forRoot(
-      process.env.MONGO_URI || 'mongodb+srv://cuongndhe180335_db_user:nodaco35@kindness-connector.ghvcoe7.mongodb.net/kindness-connector',
+      process.env.MONGO_URI ||
+        'mongodb+srv://cuongndhe180335_db_user:nodaco35@kindness-connector.ghvcoe7.mongodb.net/kindness-connector',
     ),
     AuthModule,
     ExchangeModule,
