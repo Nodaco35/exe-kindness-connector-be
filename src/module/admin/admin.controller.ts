@@ -30,6 +30,11 @@ export class AdminController {
     return this.adminService.getAllBooks();
   }
 
+  @Get('memberships')
+  getAllMemberships() {
+    return this.adminService.getAllMemberships();
+  }
+
   @Patch('users/:id/status')
   updateUserStatus(
     @Param('id') id: string,
