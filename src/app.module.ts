@@ -20,8 +20,6 @@ import { ExchangeModule } from './module/exchange/exchange.module';
 import { ChatModule } from './module/chat/chat.module';
 import { AdminModule } from './module/admin/admin.module';
 import { ReviewModule } from './module/review/review.module';
-import { UploadModule } from './module/upload/upload.module';
-import { NotificationModule } from './module/notification/notification.module';
 
 @Module({
   imports: [
@@ -39,14 +37,14 @@ import { NotificationModule } from './module/notification/notification.module';
     BookViolationModule,
     BookViolationRecordModule,
     MongooseModule.forRoot(
-      process.env.MONGO_URI || 'mongodb+srv://cuongndhe180335_db_user:nodaco35@kindness-connector.ghvcoe7.mongodb.net/kindness-connector',
+      process.env.MONGO_URI ||
+        'mongodb+srv://cuongndhe180335_db_user:nodaco35@kindness-connector.ghvcoe7.mongodb.net/kindness-connector',
     ),
     AuthModule,
     ExchangeModule,
     ChatModule,
     AdminModule,
     ReviewModule,
-    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],

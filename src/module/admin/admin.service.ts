@@ -12,7 +12,7 @@ export class AdminService {
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Book.name) private bookModel: Model<Book>,
     @InjectModel(Membership.name) private membershipModel: Model<Membership>,
-  ) {}
+  ) { }
 
   async getDashboardStats() {
     const totalUsers = await this.userModel.countDocuments();
@@ -36,7 +36,10 @@ export class AdminService {
   }
 
   async getAllBooks() {
-    return this.bookModel.find().populate('owner', 'fullName email').sort({ createdAt: -1 });
+    return this.bookModel
+      .find()
+      .populate('owner', 'fullName email')
+      .sort({ createdAt: -1 });
   }
 
   async getAllMemberships() {
@@ -44,7 +47,9 @@ export class AdminService {
   }
 
   async updateUserStatus(id: string, status: Status_ACTIVE_LOCKED) {
-    const user = await this.userModel.findByIdAndUpdate(id, { status }, { new: true }).select('-password');
+    const user = await this.userModel
+      .findByIdAndUpdate(id, { status }, { new: true })
+      .select('-password');
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -52,7 +57,11 @@ export class AdminService {
   }
 
   async updateBookStatus(id: string, status: Book_Status) {
-    const book = await this.bookModel.findByIdAndUpdate(id, { status }, { new: true });
+    const book = await this.bookModel.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true },
+    );
     if (!book) {
       throw new NotFoundException('Book not found');
     }
