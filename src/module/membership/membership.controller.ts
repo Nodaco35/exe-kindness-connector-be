@@ -15,15 +15,9 @@ export class MembershipController {
   constructor(private readonly membershipService: MembershipService) { }
 
   @UseGuards(JwtAuthGuard)
-  @Get('qr-info')
-  getQrInfo(@Req() req: any) {
-    return this.membershipService.getQrInfo(req.user.userId);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('env-config')
-  getEnvConfig() {
-    return this.membershipService.getEnvConfig();
+  @Post('checkout')
+  createCheckout(@Req() req: any, @Body() body: any) {
+    return this.membershipService.createCheckout(req.user.userId, body);
   }
 
   /**
@@ -33,20 +27,28 @@ export class MembershipController {
   @Post('sepay-webhook')
   @HttpCode(200)  // BẮT BUỘC: SePay yêu cầu HTTP 200
   async sepayWebhook(@Body() body: any) {
-    // Log để debug
-    this.logger.log('📨 Webhook received at:', new Date().toISOString());
-    this.logger.log('📦 Payload:', JSON.stringify(body, null, 2));
-
+    this.logger.log('📨 Webhook received at sepay-webhook:', new Date().toISOString());
     try {
-      // Xử lý webhook
-      const result = await this.membershipService.handleSepayWebhook(body);
-      this.logger.log('✅ Webhook processed:', result);
-
-      // Luôn trả về đúng format SePay yêu cầu
+      await this.membershipService.handleSePayWebhook(body);
       return { success: true };
+    } catch (error: any) {
+      this.logger.error('❌ Webhook error:', error.message);
+      return { success: true, message: 'Error logged' };
+    }
+  }
 
-    } catch (error) {
-      // KHÔNG throw lỗi, vẫn trả về 200 để SePay không retry
+  /**
+   * Webhook endpoint cho local test giả lập từ frontend
+   * URL: POST /membership/webhook/sepay
+   */
+  @Post('webhook/sepay')
+  @HttpCode(200)
+  async localWebhook(@Body() body: any) {
+    this.logger.log('📨 Webhook received at webhook/sepay:', new Date().toISOString());
+    try {
+      await this.membershipService.handleSePayWebhook(body);
+      return { success: true };
+    } catch (error: any) {
       this.logger.error('❌ Webhook error:', error.message);
       return { success: true, message: 'Error logged' };
     }
