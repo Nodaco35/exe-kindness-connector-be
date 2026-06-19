@@ -27,6 +27,11 @@ export class AdminController {
     return this.adminService.getAllBooks();
   }
 
+  @Get('memberships')
+  getAllMemberships() {
+    return this.adminService.getAllMemberships();
+  }
+
   @Patch('users/:id/status')
   updateUserStatus(@Param('id') id: string, @Body('status') status: Status_ACTIVE_LOCKED) {
     return this.adminService.updateUserStatus(id, status);
