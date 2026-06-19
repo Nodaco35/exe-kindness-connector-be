@@ -109,6 +109,18 @@ export class MembershipService {
     };
   }
 
+  async getQrInfo(userId: string) {
+    return this.createCheckout(userId, {});
+  }
+
+  getEnvConfig() {
+    return {
+      amount: this.membershipAmount,
+      bankAccount: process.env.SEPAY_BANK_ACCOUNT || '123456789',
+      bankName: process.env.SEPAY_BANK_NAME || 'MBBank',
+    };
+  }
+
   /**
    * Xử lý webhook từ SePay
    * QUAN TRỌNG: Phải trả về HTTP 200 và {"success": true} để SePay không gửi lại

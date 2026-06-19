@@ -28,6 +28,10 @@ export class ChatService {
     });
   }
 
+  async getRoomById(roomId: string) {
+    return this.chatRoomModel.findById(roomId);
+  }
+
   async updateActiveExchange(roomId: string, exchangeId: string) {
     return this.chatRoomModel.findByIdAndUpdate(
       roomId,

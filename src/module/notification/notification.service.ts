@@ -9,12 +9,13 @@ export class NotificationService {
     @InjectModel(Notification.name) private notificationModel: Model<Notification>,
   ) {}
 
-  async createNotification(userId: string, type: string, title: string, message: string) {
+  async createNotification(userId: string, type: string, title: string, message: string, url?: string) {
     return this.notificationModel.create({
       userId,
       type,
       title,
       message,
+      url,
     });
   }
 

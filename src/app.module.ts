@@ -20,6 +20,9 @@ import { ExchangeModule } from './module/exchange/exchange.module';
 import { ChatModule } from './module/chat/chat.module';
 import { AdminModule } from './module/admin/admin.module';
 import { ReviewModule } from './module/review/review.module';
+import { UploadModule } from './module/upload/upload.module';
+import { NotificationModule } from './module/notification/notification.module';
+import { CommentModule } from './module/comment/comment.module';
 
 @Module({
   imports: [
@@ -45,6 +48,9 @@ import { ReviewModule } from './module/review/review.module';
     ChatModule,
     AdminModule,
     ReviewModule,
+    UploadModule,
+    NotificationModule,
+    CommentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

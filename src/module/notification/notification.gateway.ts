@@ -53,9 +53,9 @@ export class NotificationGateway {
   }
 
   // Phương thức này cho phép các Service khác gọi vào để gửi thông báo thật
-  async sendNotificationToUser(userId: string, type: string, title: string, message: string) {
+  async sendNotificationToUser(userId: string, type: string, title: string, message: string, url?: string) {
     // 1. Lưu vào Database trước để chống thất lạc
-    const notification = await this.notificationService.createNotification(userId, type, title, message);
+    const notification = await this.notificationService.createNotification(userId, type, title, message, url);
 
     // 2. Định dạng dữ liệu và bắn qua Socket
     const data = {
@@ -63,6 +63,7 @@ export class NotificationGateway {
       type,
       title,
       message,
+      url: notification.url,
       createdAt: (notification as any).createdAt,
       isRead: false,
     };

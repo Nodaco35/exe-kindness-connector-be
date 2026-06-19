@@ -126,6 +126,39 @@ export class BookService {
     return book;
   }
 
+  async toggleLike(id: string, userId: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('Invalid book id');
+    }
+
+    const book = await this.bookModel.findById(id);
+    if (!book) {
+      throw new NotFoundException('Book not found');
+    }
+
+    const userObjId = new mongoose.Types.ObjectId(userId) as any;
+    const likeIndex = book.likes?.findIndex(like => like.toString() === userId) ?? -1;
+
+    let updatedBook;
+    if (likeIndex > -1) {
+      // Đã like -> unlike
+      updatedBook = await this.bookModel.findByIdAndUpdate(
+        id,
+        { $pull: { likes: userObjId } },
+        { new: true, runValidators: false }
+      );
+    } else {
+      // Chưa like -> like
+      updatedBook = await this.bookModel.findByIdAndUpdate(
+        id,
+        { $addToSet: { likes: userObjId } },
+        { new: true, runValidators: false }
+      );
+    }
+
+    return updatedBook?.likes || [];
+  }
+
   async update(id: string, updateBookDto: UpdateBookDto) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new NotFoundException('Invalid book id');

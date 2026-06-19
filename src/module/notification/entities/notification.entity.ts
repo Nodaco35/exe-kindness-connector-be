@@ -15,6 +15,9 @@ export class Notification {
   @Prop({ required: true })
   message!: string;
 
+  @Prop({ required: false })
+  url?: string;
+
   @Prop({ default: false })
   isRead!: boolean;
 }

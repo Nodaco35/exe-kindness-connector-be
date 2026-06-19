@@ -9,6 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
+import { NotificationGateway } from '../notification/notification.gateway';
 
 @WebSocketGateway({
   cors: {
@@ -19,7 +20,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server!: Server;
 
-  constructor(private readonly chatService: ChatService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly notificationGateway: NotificationGateway,
+  ) {}
 
   handleConnection(client: Socket) {
     // Usually you would extract JWT and map userId to socketId
@@ -92,6 +96,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       // Broadcast to everyone in the room (including sender to confirm)
       this.server.to(payload.roomId).emit('newMessage', message);
+
+      // Gửi Real-time Notification cho người nhận
+      const room = await this.chatService.getRoomById(payload.roomId);
+      if (room && room.participants) {
+        const otherUserIds = room.participants.filter(p => p.toString() !== payload.senderId);
+        otherUserIds.forEach(id => {
+          this.notificationGateway.sendNotificationToUser(
+            id.toString(),
+            'CHAT_MESSAGE',
+            'Tin nhắn mới',
+            payload.content,
+            `/chat?room=${payload.roomId}`
+          );
+        });
+      }
     } catch (error: any) {
       client.emit('errorMessage', {
         message: error.message || 'Error sending message',
