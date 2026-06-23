@@ -10,6 +10,7 @@ import { Exchange_Status } from '../../common/enums/status.enum';
 import { ChatService } from '../chat/chat.service';
 import { ChatGateway } from '../chat/chat.gateway';
 
+import { NotificationGateway } from '../notification/notification.gateway';
 import { User } from '../user/entities/user.entity';
 
 @Injectable()
@@ -19,6 +20,7 @@ export class ExchangeService {
     @InjectModel(User.name) private userModel: Model<User>,
     private chatService: ChatService,
     private chatGateway: ChatGateway,
+    private notificationGateway: NotificationGateway,
   ) {}
 
   async create(requesterId: string, bookId: string, ownerId: string) {
@@ -74,6 +76,15 @@ export class ExchangeService {
 
     exchange.chatRoomId = chatRoom._id;
     await exchange.save();
+
+    // Gửi thông báo đến chủ sách
+    this.notificationGateway.sendNotificationToUser(
+      ownerId,
+      'BOOK_REQUEST',
+      'Yêu cầu sách mới',
+      msgContent,
+      '/requests'
+    );
 
     return exchange;
   }
