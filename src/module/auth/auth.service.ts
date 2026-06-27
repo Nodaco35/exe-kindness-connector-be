@@ -4,6 +4,7 @@ import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcryptjs';
 import { LoginDto } from './dto/login.dto';
 import { CreateUserDto } from '../user/dto/create-user.dto';
+import { Status_ACTIVE_LOCKED } from '../../common/enums/status.enum';
 
 @Injectable()
 export class AuthService {
@@ -14,7 +15,13 @@ export class AuthService {
 
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.userService.findByEmail(email);
-    if (user && (await bcrypt.compare(pass, user.password))) {
+    if (!user) {
+      return null;
+    }
+    if (user.status === Status_ACTIVE_LOCKED.LOCKED) {
+      throw new UnauthorizedException('Tài khoản của bạn đã bị khóa.');
+    }
+    if (await bcrypt.compare(pass, user.password)) {
       const { password, ...result } = (user as any).toObject();
       return result;
     }
