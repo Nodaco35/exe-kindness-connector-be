@@ -11,6 +11,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { IsBookOwnerGuard } from './guards/is-owner.guard';
 import { BookService } from './book.service';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
@@ -31,6 +32,18 @@ export class BookController {
     return this.bookService.findAll(query);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('favorites')
+  getFavorites(@Req() req: any) {
+    return this.bookService.findFavorites(req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('my-books')
+  getMyBooks(@Req() req: any) {
+    return this.bookService.findMyBooks(req.user.userId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.bookService.findOne(id);
@@ -42,13 +55,13 @@ export class BookController {
     return this.bookService.toggleLike(id, req.user.userId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, IsBookOwnerGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateBookDto: UpdateBookDto) {
     return this.bookService.update(id, updateBookDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, IsBookOwnerGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.bookService.remove(id);

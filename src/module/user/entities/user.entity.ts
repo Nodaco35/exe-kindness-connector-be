@@ -25,6 +25,9 @@ export class User {
   @Prop()
   avatar!: string;
 
+  @Prop({ default: '' })
+  bio!: string;
+
   @Prop({
     type: [AddressSchema],
   })

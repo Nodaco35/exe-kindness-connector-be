@@ -90,6 +90,7 @@ export class UserService {
     const updateData: any = {};
     if (data.fullName) updateData.fullName = data.fullName;
     if (data.avatar) updateData.avatar = data.avatar;
+    if (data.bio !== undefined) updateData.bio = data.bio;
     if (data.address) {
       updateData.address = [data.address]; // Array of Address
       const coords = getCoordinatesFromDistrict(data.address.district);
@@ -106,6 +107,34 @@ export class UserService {
       throw new NotFoundException(`User not found`);
     }
     return updatedUser;
+  }
+
+  async changePassword(userId: string, data: any): Promise<void> {
+    const { currentPassword, newPassword } = data;
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      throw new ConflictException('Current password is incorrect');
+    }
+
+    const salt = await bcrypt.genSalt(12);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+  }
+
+  async getPublicProfile(userId: string): Promise<any> {
+    const user = await this.userModel
+      .findById(userId)
+      .select('fullName avatar bio reputationScore')
+      .exec();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 
   async buyMembership(userId: string): Promise<User> {
