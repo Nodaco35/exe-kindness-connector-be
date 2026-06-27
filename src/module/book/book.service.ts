@@ -43,6 +43,7 @@ export class BookService {
     district?: string;
     radius?: string;
     search?: string;
+    owner?: string;
   }) {
     const filter: any = {};
 
@@ -53,6 +54,13 @@ export class BookService {
         { author: { $regex: searchStr, $options: 'i' } },
       ];
     }
+
+    if (query?.owner) {
+      filter.owner = query.owner;
+    }
+
+    // Luôn ẩn sách có trạng thái HIDDEN khỏi danh sách công khai
+    filter.status = { $ne: 'HIDDEN' };
 
     const books = await this.bookModel.find(filter).populate('owner');
 
@@ -199,6 +207,22 @@ export class BookService {
     return {
       message: 'Delete book successfully',
     };
+  }
+
+  async findFavorites(userId: string) {
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+    return this.bookModel
+      .find({ likes: userObjectId as any })
+      .populate('owner')
+      .exec();
+  }
+
+  async findMyBooks(userId: string) {
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+    return this.bookModel
+      .find({ owner: userObjectId as any })
+      .sort({ createdAt: -1 })
+      .exec();
   }
 
   async getCoordinatesFromLocationCollection(

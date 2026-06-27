@@ -31,6 +31,12 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Patch('me/change-password')
+  changePassword(@Req() req: any, @Body() body: any) {
+    return this.userService.changePassword(req.user.userId, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post('membership')
   buyMembership(@Req() req: any) {
     return this.userService.buyMembership(req.user.userId);
@@ -44,6 +50,11 @@ export class UserController {
   @Get()
   findAll() {
     return this.userService.findAll();
+  }
+
+  @Get(':id/public-profile')
+  getPublicProfile(@Param('id') id: string) {
+    return this.userService.getPublicProfile(id);
   }
 
   @Get(':id')
