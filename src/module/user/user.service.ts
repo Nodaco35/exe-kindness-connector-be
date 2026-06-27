@@ -8,6 +8,7 @@ import { Model } from 'mongoose';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Book } from '../book/entities/book.entity';
 import * as bcrypt from 'bcryptjs';
 import { getCoordinatesFromDistrict } from 'src/common/constants/district-coordinates';
 
@@ -15,6 +16,7 @@ import { getCoordinatesFromDistrict } from 'src/common/constants/district-coordi
 export class UserService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
+    @InjectModel(Book.name) private readonly bookModel: Model<Book>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -75,7 +77,7 @@ export class UserService {
     return { message: 'Delete user successfully' };
   }
 
-  async getProfile(userId: string): Promise<User> {
+  async getProfile(userId: string): Promise<any> {
     const user = await this.userModel
       .findById(userId)
       .select('-password')
@@ -83,7 +85,16 @@ export class UserService {
     if (!user) {
       throw new NotFoundException(`User not found`);
     }
-    return user;
+
+    const totalFavoritedBooks = await this.bookModel
+      .countDocuments({ likes: userId as any })
+      .exec();
+
+    const userObj = user.toObject();
+    return {
+      ...userObj,
+      totalFavoritedBooks,
+    };
   }
 
   async updateProfile(userId: string, data: any): Promise<User> {
