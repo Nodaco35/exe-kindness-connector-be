@@ -121,8 +121,9 @@ export class BookService {
       throw new NotFoundException('Invalid book id');
     }
 
+    // Tự động tăng viewCount lên 1 mỗi khi người dùng xem chi tiết sách
     const book = await this.bookModel
-      .findById(id)
+      .findByIdAndUpdate(id, { $inc: { viewCount: 1 } }, { new: true })
       .populate('categories')
       .populate('advancedCategories')
       .populate('owner');
