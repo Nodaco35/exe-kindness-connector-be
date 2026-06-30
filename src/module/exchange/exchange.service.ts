@@ -6,18 +6,20 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Exchange } from './entities/exchange.entity';
-import { Exchange_Status } from '../../common/enums/status.enum';
+import { Exchange_Status, Book_Status } from '../../common/enums/status.enum';
 import { ChatService } from '../chat/chat.service';
 import { ChatGateway } from '../chat/chat.gateway';
 
 import { NotificationGateway } from '../notification/notification.gateway';
 import { User } from '../user/entities/user.entity';
+import { Book } from '../book/entities/book.entity';
 
 @Injectable()
 export class ExchangeService {
   constructor(
     @InjectModel(Exchange.name) private exchangeModel: Model<Exchange>,
     @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(Book.name) private bookModel: Model<Book>,
     private chatService: ChatService,
     private chatGateway: ChatGateway,
     private notificationGateway: NotificationGateway,
@@ -185,6 +187,10 @@ export class ExchangeService {
 
     exchange.status = Exchange_Status.COMPLETED;
     await exchange.save();
+
+    await this.bookModel.findByIdAndUpdate(exchange.book, {
+      status: Book_Status.EXCHANGED,
+    });
 
     // Add points: Owner gets 50, Requester gets 25
     await this.userModel

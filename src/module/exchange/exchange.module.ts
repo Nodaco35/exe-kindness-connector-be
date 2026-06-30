@@ -6,12 +6,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Exchange, ExchangeSchema } from './entities/exchange.entity';
 import { ChatModule } from '../chat/chat.module';
 import { User, UserSchema } from '../user/entities/user.entity';
+import { Book, BookSchema } from '../book/entities/book.entity';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Exchange.name, schema: ExchangeSchema },
       { name: User.name, schema: UserSchema },
+      { name: Book.name, schema: BookSchema },
     ]),
     ChatModule,
   ],

@@ -4,7 +4,8 @@ import { Model } from 'mongoose';
 import { User } from '../user/entities/user.entity';
 import { Book } from '../book/entities/book.entity';
 import { Membership } from '../membership/entities/membership.entity';
-import { Status_ACTIVE_LOCKED, Book_Status } from '../../common/enums/status.enum';
+import { Exchange } from '../exchange/entities/exchange.entity';
+import { Status_ACTIVE_LOCKED, Book_Status, Exchange_Status } from '../../common/enums/status.enum';
 import { UserRole } from '../../common/enums/role.enum';
 
 @Injectable()
@@ -15,6 +16,7 @@ export class AdminService {
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Book.name) private bookModel: Model<Book>,
     @InjectModel(Membership.name) private membershipModel: Model<Membership>,
+    @InjectModel(Exchange.name) private exchangeModel: Model<Exchange>,
   ) { }
 
   async getDashboardStats() {
@@ -23,8 +25,11 @@ export class AdminService {
     this.logger.log('Truy vấn: db.users.countDocuments({ role: { $ne: "ADMIN" } }) để lấy tổng số người dùng');
     const totalUsers = await this.userModel.countDocuments({ role: { $ne: UserRole.ADMIN } });
 
-    this.logger.log('Truy vấn: db.books.countDocuments({}) để lấy tổng số sách');
-    const totalBooks = await this.bookModel.countDocuments();
+    this.logger.log('Truy vấn: db.books.countDocuments({ status: "AVAILABLE" }) để lấy tổng số sách available');
+    const totalBooks = await this.bookModel.countDocuments({ status: Book_Status.AVAILABLE });
+
+    this.logger.log('Truy vấn: db.exchanges.countDocuments() để lấy tổng số giao dịch');
+    const totalExchanges = await this.exchangeModel.countDocuments();
 
     this.logger.log('Truy vấn: db.users.countDocuments({ role: { $ne: "ADMIN" }, isPremium: true }) để lấy tổng người dùng Premium');
     const totalPremiumUsers = await this.userModel.countDocuments({ role: { $ne: UserRole.ADMIN }, isPremium: true });
@@ -87,6 +92,7 @@ export class AdminService {
     return {
       totalUsers,
       totalBooks,
+      totalExchanges,
       totalPremiumUsers,
       totalRevenue,
       userStatus: {
