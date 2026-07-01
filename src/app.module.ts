@@ -23,6 +23,7 @@ import { ReviewModule } from './module/review/review.module';
 import { UploadModule } from './module/upload/upload.module';
 import { NotificationModule } from './module/notification/notification.module';
 import { CommentModule } from './module/comment/comment.module';
+import { MailModule } from './module/mail/mail.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { CommentModule } from './module/comment/comment.module';
     UploadModule,
     NotificationModule,
     CommentModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

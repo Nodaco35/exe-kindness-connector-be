@@ -7,6 +7,7 @@ import { User, UserSchema } from '../user/entities/user.entity';
 import { Book, BookSchema } from '../book/entities/book.entity';
 import { Membership, MembershipSchema } from '../membership/entities/membership.entity';
 import { Exchange, ExchangeSchema } from '../exchange/entities/exchange.entity';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { Exchange, ExchangeSchema } from '../exchange/entities/exchange.entity';
       { name: Membership.name, schema: MembershipSchema },
       { name: Exchange.name, schema: ExchangeSchema },
     ]),
+    MailModule,
   ],
   controllers: [AdminController],
   providers: [AdminService],

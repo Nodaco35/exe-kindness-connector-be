@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Post, Param, Body, UseGuards } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -49,5 +49,13 @@ export class AdminController {
     @Body('status') status: Book_Status,
   ) {
     return this.adminService.updateBookStatus(id, status);
+  }
+
+  @Post('send-email')
+  sendTestEmail(
+    @Body('email') email: string,
+    @Body('message') message: string,
+  ) {
+    return this.adminService.sendTestEmail(email, message);
   }
 }

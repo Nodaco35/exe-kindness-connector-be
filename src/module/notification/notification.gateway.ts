@@ -8,6 +8,8 @@ import {
 import { Server, Socket } from 'socket.io';
 import { NotificationService } from './notification.service';
 import { forwardRef, Inject } from '@nestjs/common';
+import { UserService } from '../user/user.service';
+import { MailService } from '../mail/mail.service';
 
 @WebSocketGateway({
   cors: {
@@ -20,7 +22,9 @@ export class NotificationGateway {
 
   constructor(
     @Inject(forwardRef(() => NotificationService))
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private userService: UserService,
+    private mailService: MailService,
   ) {}
 
   @SubscribeMessage('register')
@@ -69,5 +73,14 @@ export class NotificationGateway {
     };
     this.server.to(`user_${userId}`).emit('new_notification', data);
     console.log(`[NotificationGateway] Emitted new_notification to user_${userId}`, title);
+
+    // 3. Gửi Email thông báo (Bất đồng bộ)
+    this.userService.findOne(userId).then((user) => {
+      if (user && user.email) {
+        this.mailService.sendNotificationEmail(user.email, type, title, message, url);
+      }
+    }).catch((err) => {
+      console.error(`[NotificationGateway] Failed to fetch user ${userId} for sending email:`, err.message);
+    });
   }
 }

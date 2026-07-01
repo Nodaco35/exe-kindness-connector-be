@@ -7,6 +7,7 @@ import { Membership } from '../membership/entities/membership.entity';
 import { Exchange } from '../exchange/entities/exchange.entity';
 import { Status_ACTIVE_LOCKED, Book_Status, Exchange_Status } from '../../common/enums/status.enum';
 import { UserRole } from '../../common/enums/role.enum';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AdminService {
@@ -17,6 +18,7 @@ export class AdminService {
     @InjectModel(Book.name) private bookModel: Model<Book>,
     @InjectModel(Membership.name) private membershipModel: Model<Membership>,
     @InjectModel(Exchange.name) private exchangeModel: Model<Exchange>,
+    private mailService: MailService,
   ) { }
 
   async getDashboardStats() {
@@ -145,5 +147,15 @@ export class AdminService {
       throw new NotFoundException('Book not found');
     }
     return book;
+  }
+
+  async sendTestEmail(email: string, message: string) {
+    await this.mailService.sendNotificationEmail(
+      email,
+      'ADMIN_MESSAGE',
+      'Admin gửi cho bạn tin nhắn',
+      message
+    );
+    return { success: true, message: 'Email sent successfully' };
   }
 }
