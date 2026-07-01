@@ -33,7 +33,9 @@ export class IsBookOwnerGuard implements CanActivate {
       throw new NotFoundException('Book not found');
     }
 
-    if (book.owner.toString() !== userId.toString()) {
+    const role = request.user?.role;
+
+    if (book.owner.toString() !== userId.toString() && role !== 'ADMIN') {
       throw new ForbiddenException('You do not have permission to modify this book');
     }
 
