@@ -185,6 +185,7 @@ export class BookService {
 
     const updatedBook = await this.bookModel.findByIdAndUpdate(id, updateData, {
       new: true,
+      overwriteImmutable: true,
     });
 
     if (!updatedBook) {
