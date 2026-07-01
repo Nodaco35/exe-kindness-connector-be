@@ -129,7 +129,15 @@ export class ExchangeService {
     }
 
     exchange.status = status;
-    return exchange.save();
+    const savedExchange = await exchange.save();
+
+    if (status === Exchange_Status.ACCEPTED) {
+      await this.bookModel.findByIdAndUpdate(exchange.book, {
+        status: Book_Status.REQUESTED,
+      });
+    }
+
+    return savedExchange;
   }
 
   async cancelExchange(exchangeId: string, userId: string) {
@@ -143,8 +151,16 @@ export class ExchangeService {
       throw new BadRequestException('You are not part of this exchange');
     }
 
+    const wasAccepted = exchange.status === Exchange_Status.ACCEPTED;
+
     exchange.status = Exchange_Status.CANCELED;
     await exchange.save();
+
+    if (wasAccepted) {
+      await this.bookModel.findByIdAndUpdate(exchange.book, {
+        status: Book_Status.AVAILABLE,
+      });
+    }
 
     if (exchange.chatRoomId) {
       const populated = await exchange.populate('book');

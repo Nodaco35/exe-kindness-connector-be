@@ -59,8 +59,8 @@ export class BookService {
       filter.owner = query.owner;
     }
 
-    // Luôn ẩn sách có trạng thái HIDDEN khỏi danh sách công khai
-    filter.status = { $ne: 'HIDDEN' };
+    // Chỉ hiển thị sách có trạng thái AVAILABLE trên trang chủ/search
+    filter.status = 'AVAILABLE';
 
     const books = await this.bookModel.find(filter).populate('owner');
 
