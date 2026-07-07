@@ -108,7 +108,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             'Tin nhắn mới',
             payload.content,
             `/chat?room=${payload.roomId}`
-          );
+          ).catch(e => console.error('[ChatGateway] Error sendNotificationToUser:', e));
         });
       }
     } catch (error: any) {

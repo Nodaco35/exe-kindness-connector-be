@@ -80,13 +80,17 @@ export class ExchangeService {
     await exchange.save();
 
     // Gửi thông báo đến chủ sách
-    this.notificationGateway.sendNotificationToUser(
-      ownerId,
-      'BOOK_REQUEST',
-      'Yêu cầu sách mới',
-      msgContent,
-      '/requests'
-    );
+    try {
+      this.notificationGateway.sendNotificationToUser(
+        ownerId,
+        'BOOK_REQUEST',
+        'Yêu cầu sách mới',
+        msgContent,
+        '/requests'
+      ).catch(e => console.error('[ExchangeService] Error async sendNotification:', e));
+    } catch(err) {
+      console.error('[ExchangeService] Sync Error sendNotification:', err);
+    }
 
     return exchange;
   }

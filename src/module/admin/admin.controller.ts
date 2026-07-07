@@ -58,4 +58,13 @@ export class AdminController {
   ) {
     return this.adminService.sendTestEmail(email, message);
   }
+
+  @Post('test-real-noti')
+  async testRealNoti(
+    @Body('userId') userId: string,
+  ) {
+    const { NotificationGateway } = require('../notification/notification.gateway');
+    const appModule = require('../../main'); // we can't easily do this.
+    // Instead just use the database or something? No, we need the gateway instance.
+  }
 }
