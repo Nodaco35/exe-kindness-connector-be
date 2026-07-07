@@ -12,6 +12,7 @@ import { MailService } from './mail.service';
           host: process.env.MAIL_HOST || 'smtp.gmail.com',
           port: 465, // Bắt buộc thêm dòng này
           secure: true, // Use true for port 465, false for all other ports
+          family: 4, // Bắt buộc sử dụng IPv4
           auth: {
             user: process.env.MAIL_USER,
             pass: process.env.MAIL_PASS,
