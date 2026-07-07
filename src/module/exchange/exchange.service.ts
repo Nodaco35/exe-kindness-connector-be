@@ -212,14 +212,9 @@ export class ExchangeService {
       status: Book_Status.EXCHANGED,
     });
 
-    // Add points: Owner gets 50, Requester gets 25
+    // Add points: Owner gets 200, Requester gets 0 (removed)
     await this.userModel
-      .findByIdAndUpdate(exchange.owner.toString(), { $inc: { points: 50 } })
-      .exec();
-    await this.userModel
-      .findByIdAndUpdate(exchange.requester.toString(), {
-        $inc: { points: 25 },
-      })
+      .findByIdAndUpdate(exchange.owner.toString(), { $inc: { points: 200 } })
       .exec();
 
     if (exchange.chatRoomId) {

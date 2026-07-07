@@ -43,6 +43,12 @@ interface SePayWebhookPayload {
   description: string;
 }
 
+export const SUBSCRIPTION_PACKAGES = {
+  '3M': { price: 300000, durationDays: 90, name: '3 tháng' },
+  '6M': { price: 500000, durationDays: 180, name: '6 tháng' },
+  '1Y': { price: 900000, durationDays: 365, name: '1 năm' },
+};
+
 @Injectable()
 export class MembershipService {
   private readonly membershipAmount = Number(process.env.MEMBERSHIP_PRICE ?? 50000);
@@ -69,32 +75,36 @@ export class MembershipService {
     });
   }
 
-  async createCheckout(userId: string, links: CheckoutLinks): Promise<CheckoutResponse> {
+  async createCheckout(userId: string, body: any): Promise<CheckoutResponse> {
     const user = await this.userModel.findById(userId).exec();
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
+    const packageType = (body?.packageType || '3M').toUpperCase();
+    const pkg = SUBSCRIPTION_PACKAGES[packageType] || SUBSCRIPTION_PACKAGES['3M'];
+    const amount = pkg.price;
+
     const client = this.createClient();
-    const orderInvoiceNumber = `MEM-${userId}-${Date.now()}`;
+    const orderInvoiceNumber = `MEM-${userId}-${packageType}-${Date.now()}`;
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
 
     const checkoutURL = client.checkout.initCheckoutUrl();
     const formFields = client.checkout.initOneTimePaymentFields({
       payment_method: 'BANK_TRANSFER',
       order_invoice_number: orderInvoiceNumber,
-      order_amount: this.membershipAmount,
+      order_amount: amount,
       currency: 'VND',
-      order_description: `Thanh toan goi premium cho ${user.fullName || user.email}`,
-      success_url: links.successUrl || `${baseUrl}/rewards?payment=success&invoice=${orderInvoiceNumber}`,
-      error_url: links.errorUrl || `${baseUrl}/rewards?payment=error&invoice=${orderInvoiceNumber}`,
-      cancel_url: links.cancelUrl || `${baseUrl}/rewards?payment=cancel&invoice=${orderInvoiceNumber}`,
+      order_description: `Thanh toan goi premium ${pkg.name} cho ${user.fullName || user.email}`,
+      success_url: body.successUrl || `${baseUrl}/rewards?payment=success&invoice=${orderInvoiceNumber}`,
+      error_url: body.errorUrl || `${baseUrl}/rewards?payment=error&invoice=${orderInvoiceNumber}`,
+      cancel_url: body.cancelUrl || `${baseUrl}/rewards?payment=cancel&invoice=${orderInvoiceNumber}`,
     });
 
     const bankAccount = process.env.SEPAY_BANK_ACCOUNT || '123456789';
     const bankName = process.env.SEPAY_BANK_NAME || 'MBBank';
-    const qrUrl = `https://qr.sepay.vn/img?acc=${bankAccount}&bank=${bankName}&amount=${this.membershipAmount}&des=${orderInvoiceNumber}`;
+    const qrUrl = `https://qr.sepay.vn/img?acc=${bankAccount}&bank=${bankName}&amount=${amount}&des=${orderInvoiceNumber}`;
 
     return {
       checkoutURL,
@@ -102,7 +112,7 @@ export class MembershipService {
         Object.entries(formFields).map(([key, value]) => [key, String(value)]),
       ),
       orderInvoiceNumber,
-      amount: this.membershipAmount,
+      amount,
       qrUrl,
       bankAccount,
       bankName,
@@ -132,13 +142,42 @@ export class MembershipService {
       return { success: true, message: 'Ignored outgoing transaction' };
     }
 
-    // 2. Kiểm tra số tiền (có thể bỏ qua nếu muốn linh hoạt)
-    if (payload.transferAmount < this.membershipAmount) {
-      console.log(`Amount too low: ${payload.transferAmount} < ${this.membershipAmount}`);
+    // 2. Trích xuất mã đơn hàng từ nội dung chuyển khoản và xác định gói dịch vụ
+    let userId: string;
+    let packageType = '3M';
+
+    // Thử trích xuất theo format mới: MEM-{userId}-{packageType}-{timestamp}
+    const matchWithPackage = payload.content.match(/MEM-?([a-fA-F0-9]{24})-?(3M|6M|1Y)-?(\d{13})/i);
+    if (matchWithPackage) {
+      userId = matchWithPackage[1];
+      packageType = matchWithPackage[2].toUpperCase();
+    } else {
+      // Fallback cho định dạng cũ: MEM-{userId}-{timestamp}
+      const matchOld = payload.content.match(/MEM-?([a-fA-F0-9]{24})-?(\d{13})/i);
+      if (!matchOld) {
+        console.log(`Cannot extract invoice number or userId from content: ${payload.content}`);
+        return { success: true, message: 'Invalid invoice number format' };
+      }
+      userId = matchOld[1];
+      // Tự động suy luận gói dựa vào số tiền chuyển khoản thực tế
+      if (payload.transferAmount >= 900000) {
+        packageType = '1Y';
+      } else if (payload.transferAmount >= 500000) {
+        packageType = '6M';
+      } else {
+        packageType = '3M';
+      }
+    }
+
+    const pkg = SUBSCRIPTION_PACKAGES[packageType] || SUBSCRIPTION_PACKAGES['3M'];
+
+    // 3. Kiểm tra số tiền thực tế chuyển
+    if (payload.transferAmount < pkg.price) {
+      console.log(`Amount too low: ${payload.transferAmount} < ${pkg.price}`);
       return { success: true, message: 'Amount too low' };
     }
 
-    // 3. CHỐNG DUPLICATE: Kiểm tra xem giao dịch đã xử lý chưa
+    // 4. CHỐNG DUPLICATE: Kiểm tra xem giao dịch đã xử lý chưa
     const existingPayment = await this.membershipModel.findOne({
       transactionId: String(payload.id),
     }).exec();
@@ -147,19 +186,6 @@ export class MembershipService {
       console.log(`Duplicate webhook for transaction ${payload.id}, skipping`);
       return { success: true, message: 'Already processed' };
     }
-
-    // 4. Trích xuất mã đơn hàng từ nội dung chuyển khoản
-    // Hỗ trợ cả trường hợp có hoặc không có dấu gạch ngang (do một số ngân hàng tự động loại bỏ ký tự đặc biệt)
-    // Ví dụ: "MEM-6a30ac7ef85b815a96bad6b4-1781574793109" hoặc "MEM6a30ac7ef85b815a96bad6b41781574793109"
-    const match = payload.content.match(/MEM-?([a-fA-F0-9]{24})-?(\d{13})/i);
-
-    if (!match) {
-      console.log(`Cannot extract invoice number or userId from content: ${payload.content}`);
-      return { success: true, message: 'Invalid invoice number format' };
-    }
-
-    const userId = match[1];
-    const invoiceNumber = match[0];
 
     // 5. Tìm user
     const user = await this.userModel.findById(userId).exec();
@@ -177,13 +203,12 @@ export class MembershipService {
 
     if (existingActiveMembership) {
       console.log(`User ${userId} already has active membership`);
-      // Vẫn tạo membership mới nhưng chưa active? Hoặc extend? Tùy logic bạn
     }
 
     // 8. Tạo membership mới
     const startDate = new Date();
     const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + this.membershipDurationDays);
+    endDate.setDate(endDate.getDate() + pkg.durationDays);
 
     // Cập nhật user
     user.isPremium = true;
@@ -207,7 +232,7 @@ export class MembershipService {
       action: 'CREATED' as any,
     } as any);
 
-    console.log(`✅ Activated premium for user: ${user.email} (${userId})`);
+    console.log(`✅ Activated premium (${pkg.name}) for user: ${user.email} (${userId})`);
     console.log(`   Transaction: ${payload.id} | Amount: ${payload.transferAmount} VND`);
 
     return { success: true, membershipId: membership._id };
