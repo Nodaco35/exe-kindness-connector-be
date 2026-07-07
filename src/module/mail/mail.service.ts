@@ -46,9 +46,9 @@ export class MailService {
         subject: subject,
         template: template,
         context: {
-          title,
-          message,
-          redirectUrl,
+          title: title,
+          message: message,
+          redirectUrl: redirectUrl,
         },
       });
 
