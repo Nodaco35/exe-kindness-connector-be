@@ -10,6 +10,7 @@ import { MailService } from './mail.service';
       useFactory: () => ({
         transport: {
           host: process.env.MAIL_HOST || 'smtp.gmail.com',
+          port: 465, // Bắt buộc thêm dòng này
           secure: true, // Use true for port 465, false for all other ports
           auth: {
             user: process.env.MAIL_USER,
