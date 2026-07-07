@@ -164,12 +164,9 @@ export class UserService {
   }
 
   async addExchangePoints(ownerId: string, requesterId: string): Promise<void> {
-    // Owner gets 50 points, Requester gets 25 points (2:1 ratio)
+    // Owner gets 200 points, Requester gets 0 points (removed)
     await this.userModel
-      .findByIdAndUpdate(ownerId, { $inc: { points: 50 } })
-      .exec();
-    await this.userModel
-      .findByIdAndUpdate(requesterId, { $inc: { points: 25 } })
+      .findByIdAndUpdate(ownerId, { $inc: { points: 200 } })
       .exec();
   }
 
