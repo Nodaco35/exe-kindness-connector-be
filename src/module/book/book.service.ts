@@ -59,8 +59,8 @@ export class BookService {
       filter.owner = query.owner;
     }
 
-    // Luôn ẩn sách có trạng thái HIDDEN khỏi danh sách công khai
-    filter.status = { $ne: 'HIDDEN' };
+    // Chỉ hiển thị sách có trạng thái AVAILABLE trên trang chủ/search
+    filter.status = 'AVAILABLE';
 
     const books = await this.bookModel.find(filter).populate('owner');
 
@@ -121,8 +121,9 @@ export class BookService {
       throw new NotFoundException('Invalid book id');
     }
 
+    // Tự động tăng viewCount lên 1 mỗi khi người dùng xem chi tiết sách
     const book = await this.bookModel
-      .findById(id)
+      .findByIdAndUpdate(id, { $inc: { viewCount: 1 } }, { new: true })
       .populate('categories')
       .populate('advancedCategories')
       .populate('owner');
@@ -184,6 +185,7 @@ export class BookService {
 
     const updatedBook = await this.bookModel.findByIdAndUpdate(id, updateData, {
       new: true,
+      overwriteImmutable: true,
     });
 
     if (!updatedBook) {

@@ -71,4 +71,7 @@ export class CreateBookDto {
 
   @IsOptional()
   viewCount?: number;
+
+  @IsOptional()
+  createdAt?: string | Date;
 }

@@ -6,18 +6,20 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Exchange } from './entities/exchange.entity';
-import { Exchange_Status } from '../../common/enums/status.enum';
+import { Exchange_Status, Book_Status } from '../../common/enums/status.enum';
 import { ChatService } from '../chat/chat.service';
 import { ChatGateway } from '../chat/chat.gateway';
 
 import { NotificationGateway } from '../notification/notification.gateway';
 import { User } from '../user/entities/user.entity';
+import { Book } from '../book/entities/book.entity';
 
 @Injectable()
 export class ExchangeService {
   constructor(
     @InjectModel(Exchange.name) private exchangeModel: Model<Exchange>,
     @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(Book.name) private bookModel: Model<Book>,
     private chatService: ChatService,
     private chatGateway: ChatGateway,
     private notificationGateway: NotificationGateway,
@@ -78,13 +80,17 @@ export class ExchangeService {
     await exchange.save();
 
     // Gửi thông báo đến chủ sách
-    this.notificationGateway.sendNotificationToUser(
-      ownerId,
-      'BOOK_REQUEST',
-      'Yêu cầu sách mới',
-      msgContent,
-      '/requests'
-    );
+    try {
+      this.notificationGateway.sendNotificationToUser(
+        ownerId,
+        'BOOK_REQUEST',
+        'Yêu cầu sách mới',
+        msgContent,
+        '/requests'
+      ).catch(e => console.error('[ExchangeService] Error async sendNotification:', e));
+    } catch(err) {
+      console.error('[ExchangeService] Sync Error sendNotification:', err);
+    }
 
     return exchange;
   }
@@ -127,7 +133,15 @@ export class ExchangeService {
     }
 
     exchange.status = status;
-    return exchange.save();
+    const savedExchange = await exchange.save();
+
+    if (status === Exchange_Status.ACCEPTED) {
+      await this.bookModel.findByIdAndUpdate(exchange.book, {
+        status: Book_Status.REQUESTED,
+      });
+    }
+
+    return savedExchange;
   }
 
   async cancelExchange(exchangeId: string, userId: string) {
@@ -141,8 +155,16 @@ export class ExchangeService {
       throw new BadRequestException('You are not part of this exchange');
     }
 
+    const wasAccepted = exchange.status === Exchange_Status.ACCEPTED;
+
     exchange.status = Exchange_Status.CANCELED;
     await exchange.save();
+
+    if (wasAccepted) {
+      await this.bookModel.findByIdAndUpdate(exchange.book, {
+        status: Book_Status.AVAILABLE,
+      });
+    }
 
     if (exchange.chatRoomId) {
       const populated = await exchange.populate('book');
@@ -186,14 +208,13 @@ export class ExchangeService {
     exchange.status = Exchange_Status.COMPLETED;
     await exchange.save();
 
-    // Add points: Owner gets 50, Requester gets 25
+    await this.bookModel.findByIdAndUpdate(exchange.book, {
+      status: Book_Status.EXCHANGED,
+    });
+
+    // Add points: Owner gets 200, Requester gets 0 (removed)
     await this.userModel
-      .findByIdAndUpdate(exchange.owner.toString(), { $inc: { points: 50 } })
-      .exec();
-    await this.userModel
-      .findByIdAndUpdate(exchange.requester.toString(), {
-        $inc: { points: 25 },
-      })
+      .findByIdAndUpdate(exchange.owner.toString(), { $inc: { points: 200 } })
       .exec();
 
     if (exchange.chatRoomId) {

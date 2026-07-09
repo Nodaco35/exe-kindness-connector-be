@@ -5,12 +5,17 @@ import { NotificationService } from './notification.service';
 import { NotificationController } from './notification.controller';
 import { Notification, NotificationSchema } from './entities/notification.entity';
 
+import { MailModule } from '../mail/mail.module';
+import { UserModule } from '../user/user.module';
+
 @Global()
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Notification.name, schema: NotificationSchema },
     ]),
+    MailModule,
+    UserModule,
   ],
   controllers: [NotificationController],
   providers: [NotificationGateway, NotificationService],
