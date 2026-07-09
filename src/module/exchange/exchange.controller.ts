@@ -31,6 +31,11 @@ export class ExchangeController {
     return this.exchangeService.findAllForUser(req.user.userId);
   }
 
+  @Get('user/:userId')
+  findAllForUserById(@Param('userId') userId: string) {
+    return this.exchangeService.findAllForUser(userId);
+  }
+
   @Get('book/:bookId')
   findAllForBook(@Param('bookId') bookId: string, @Req() req: any) {
     return this.exchangeService.findAllForBook(bookId, req.user.userId);
