@@ -210,6 +210,7 @@ export class ExchangeService {
 
     await this.bookModel.findByIdAndUpdate(exchange.book, {
       status: Book_Status.EXCHANGED,
+      owner: exchange.requester,
     });
 
     // Add points: Owner gets 200, Requester gets 0 (removed)

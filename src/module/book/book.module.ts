@@ -4,8 +4,8 @@ import { BookService } from './book.service';
 import { BookController } from './book.controller';
 import { Book, BookSchema } from './entities/book.entity';
 import { User, UserSchema } from '../user/entities/user.entity';
-
 import { Location, LocationSchema } from '../location/entities/location.entity';
+import { Exchange, ExchangeSchema } from '../exchange/entities/exchange.entity';
 
 @Module({
   imports: [
@@ -21,6 +21,10 @@ import { Location, LocationSchema } from '../location/entities/location.entity';
       {
         name: Location.name,
         schema: LocationSchema,
+      },
+      {
+        name: Exchange.name,
+        schema: ExchangeSchema,
       },
     ]),
   ],
