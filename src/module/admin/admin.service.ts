@@ -127,6 +127,15 @@ export class AdminService {
     return this.membershipModel.find().populate('user', 'fullName email').sort({ createdAt: -1 });
   }
 
+  async getAllExchanges() {
+    return this.exchangeModel
+      .find()
+      .populate('owner', 'fullName email')
+      .populate('requester', 'fullName email')
+      .populate('book', 'title')
+      .sort({ createdAt: -1 });
+  }
+
   async updateUserStatus(id: string, status: Status_ACTIVE_LOCKED) {
     const user = await this.userModel
       .findByIdAndUpdate(id, { status }, { new: true })

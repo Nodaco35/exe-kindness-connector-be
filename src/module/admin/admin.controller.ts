@@ -35,6 +35,11 @@ export class AdminController {
     return this.adminService.getAllMemberships();
   }
 
+  @Get('exchanges')
+  getAllExchanges() {
+    return this.adminService.getAllExchanges();
+  }
+
   @Patch('users/:id/status')
   updateUserStatus(
     @Param('id') id: string,

@@ -44,6 +44,7 @@ export class BookService {
     radius?: string;
     search?: string;
     owner?: string;
+    category?: string;
   }) {
     const filter: any = {};
 
@@ -57,6 +58,10 @@ export class BookService {
 
     if (query?.owner) {
       filter.owner = query.owner;
+    }
+
+    if (query?.category) {
+      filter.categories = query.category;
     }
 
     // Chỉ hiển thị sách có trạng thái AVAILABLE trên trang chủ/search
