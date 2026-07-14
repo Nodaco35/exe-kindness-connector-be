@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { CreateBookDto } from './dto/create-book.dto';
@@ -9,6 +9,8 @@ import { User } from '../user/entities/user.entity';
 import { getCoordinatesFromDistrict } from 'src/common/constants/district-coordinates';
 import { Location } from '../location/entities/location.entity';
 import { LocationType } from 'src/common/enums/location-type.enum';
+import { Exchange } from '../exchange/entities/exchange.entity';
+import { Book_Status, Exchange_Status } from 'src/common/enums/status.enum';
 
 @Injectable()
 export class BookService {
@@ -16,6 +18,7 @@ export class BookService {
     @InjectModel(Book.name) private readonly bookModel: Model<Book>,
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Location.name) private readonly locationModel: Model<Location>,
+    @InjectModel(Exchange.name) private readonly exchangeModel: Model<Exchange>,
   ) {}
 
   async create(createBookDto: CreateBookDto) {
@@ -137,7 +140,52 @@ export class BookService {
       throw new NotFoundException('Book not found');
     }
 
-    return book;
+    // Lấy danh sách giao dịch đã hoàn tất
+    const completedExchanges = await this.exchangeModel
+      .find({
+        book: id,
+        status: Exchange_Status.COMPLETED,
+      })
+      .populate('owner', 'fullName avatar email')
+      .populate('requester', 'fullName avatar email')
+      .sort({ updatedAt: 1 })
+      .exec();
+
+    const ownershipHistory: any[] = [];
+
+    if (completedExchanges.length === 0) {
+      if (book.owner) {
+        ownershipHistory.push({
+          owner: book.owner,
+          acquiredAt: (book as any).createdAt || new Date(),
+          releasedAt: null,
+        });
+      }
+    } else {
+      // Đời chủ đầu tiên (người cho trong giao dịch đầu tiên)
+      const firstExchange = completedExchanges[0] as any;
+      ownershipHistory.push({
+        owner: firstExchange.owner,
+        acquiredAt: (book as any).createdAt || firstExchange.createdAt,
+        releasedAt: firstExchange.updatedAt,
+      });
+
+      // Các đời chủ nhận tiếp theo
+      for (let i = 0; i < completedExchanges.length; i++) {
+        const currentEx = completedExchanges[i] as any;
+        const nextEx = completedExchanges[i + 1] as any;
+        ownershipHistory.push({
+          owner: currentEx.requester,
+          acquiredAt: currentEx.updatedAt,
+          releasedAt: nextEx ? nextEx.updatedAt : null,
+        });
+      }
+    }
+
+    const bookObj = book.toObject();
+    (bookObj as any).ownershipHistory = ownershipHistory;
+
+    return bookObj;
   }
 
   async toggleLike(id: string, userId: string) {
@@ -293,5 +341,29 @@ export class BookService {
 
   private deg2rad(deg: number): number {
     return deg * (Math.PI / 180);
+  }
+
+  async reup(id: string, userId: string) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('Invalid book id');
+    }
+
+    const book = await this.bookModel.findById(id);
+    if (!book) {
+      throw new NotFoundException('Book not found');
+    }
+
+    if (book.owner.toString() !== userId) {
+      throw new ForbiddenException('You do not own this book');
+    }
+
+    if (book.status !== Book_Status.EXCHANGED) {
+      throw new BadRequestException('Only exchanged books can be re-listed');
+    }
+
+    book.status = Book_Status.AVAILABLE;
+    book.likes = []; // Reset likes for the new lifecycle
+
+    return book.save();
   }
 }

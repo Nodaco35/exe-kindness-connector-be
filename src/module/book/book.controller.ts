@@ -62,6 +62,12 @@ export class BookController {
   }
 
   @UseGuards(JwtAuthGuard, IsBookOwnerGuard)
+  @Patch(':id/reup')
+  reup(@Param('id') id: string, @Req() req: any) {
+    return this.bookService.reup(id, req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard, IsBookOwnerGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.bookService.remove(id);
